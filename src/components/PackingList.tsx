@@ -1,0 +1,110 @@
+'use client';
+
+import { PackItem, CheckedItems, CATEGORIES } from '@/lib/types';
+import { useState } from 'react';
+
+interface Props {
+  items: PackItem[];
+  checked: CheckedItems;
+  onToggle: (id: string) => void;
+}
+
+const CATEGORY_EMOJI: Record<string, string> = {
+  'Kleding': '👕',
+  'Slaap': '🛏️',
+  'Keuken & Eten': '🍳',
+  'Hygiëne': '🧴',
+  'Kinderen': '🧒',
+  'EHBO': '🩹',
+  'Navigatie & Kaarten': '🗺️',
+  'Gereedschap': '🔧',
+  'Bergen': '⛰️',
+  'Overig': '📦',
+};
+
+export default function PackingList({ items, checked, onToggle }: Props) {
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+
+  const byCategory = CATEGORIES.reduce((acc, cat) => {
+    const catItems = items.filter(i => i.category === cat);
+    if (catItems.length > 0) acc[cat] = catItems;
+    return acc;
+  }, {} as Record<string, PackItem[]>);
+
+  if (items.length === 0) {
+    return (
+      <div className="text-center py-12 text-stone-400">
+        <div className="text-4xl mb-2">🎒</div>
+        <p>Geen items voor deze trip configuratie.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {Object.entries(byCategory).map(([category, catItems]) => {
+        const checkedInCat = catItems.filter(i => checked[i.id]).length;
+        const isCollapsed = collapsed[category];
+
+        return (
+          <div key={category} className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+            <button
+              className="w-full flex items-center justify-between p-4 text-left hover:bg-stone-50 transition-colors"
+              onClick={() => setCollapsed(prev => ({ ...prev, [category]: !prev[category] }))}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-xl">{CATEGORY_EMOJI[category] || '📦'}</span>
+                <span className="font-semibold text-stone-700">{category}</span>
+                <span className="text-xs text-stone-400 bg-stone-100 px-2 py-0.5 rounded-full">
+                  {checkedInCat}/{catItems.length}
+                </span>
+              </div>
+              <span className="text-stone-400 text-sm">{isCollapsed ? '▶' : '▼'}</span>
+            </button>
+
+            {!isCollapsed && (
+              <div className="border-t border-stone-100">
+                {catItems.map((item, idx) => (
+                  <button
+                    key={item.id}
+                    onClick={() => onToggle(item.id)}
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-stone-50 ${
+                      idx > 0 ? 'border-t border-stone-50' : ''
+                    }`}
+                  >
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                      checked[item.id]
+                        ? 'bg-green-500 border-green-500'
+                        : 'border-stone-300'
+                    }`}>
+                      {checked[item.id] && (
+                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className={`text-sm ${checked[item.id] ? 'line-through text-stone-400' : 'text-stone-700'}`}>
+                        {item.name}
+                      </span>
+                      {item.quantity && (
+                        <span className="text-xs text-stone-400 ml-1">({item.quantity})</span>
+                      )}
+                      {item.notes && (
+                        <p className="text-xs text-stone-400 mt-0.5">{item.notes}</p>
+                      )}
+                    </div>
+                    <div className="flex gap-1">
+                      {item.mountains && <span className="text-xs">⛰️</span>}
+                      {item.kids && <span className="text-xs">👧</span>}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
