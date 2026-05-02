@@ -1,8 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { PackItem, Tip, CheckedItems, TripConfig } from '@/lib/types';
-import { storage } from '@/lib/storage';
+import {
+  subscribeItems, saveItems,
+  subscribeTips, saveTips,
+  subscribeState, saveChecked, saveTripConfig,
+  fetchItems, fetchTips, fetchState,
+} from '@/lib/firestore';
 
 export function useCampingStore() {
   const [items, setItemsState] = useState<PackItem[]>([]);
@@ -10,46 +15,66 @@ export function useCampingStore() {
   const [checked, setCheckedState] = useState<CheckedItems>({});
   const [tripConfig, setTripConfigState] = useState<TripConfig>({ type: 'weekend', mountains: false, kids: false });
   const [mounted, setMounted] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+
+  // Track whether initial data is loaded to avoid overwriting remote with empty local
+  const ready = useRef(false);
 
   useEffect(() => {
-    setItemsState(storage.getItems());
-    setTipsState(storage.getTips());
-    setCheckedState(storage.getChecked());
-    setTripConfigState(storage.getTripConfig());
-    setMounted(true);
+    // Initial fetch to seed data if needed, then subscribe for realtime updates
+    Promise.all([fetchItems(), fetchTips(), fetchState()]).then(([i, t, s]) => {
+      setItemsState(i);
+      setTipsState(t);
+      setCheckedState(s.checked);
+      setTripConfigState(s.tripConfig);
+      setMounted(true);
+      ready.current = true;
+    }).catch(() => {
+      // Firebase not configured yet — fall through without crashing
+      setMounted(true);
+      ready.current = true;
+    });
+
+    const unsubItems = subscribeItems(items => setItemsState(items));
+    const unsubTips = subscribeTips(tips => setTipsState(tips));
+    const unsubState = subscribeState((checked, tripConfig) => {
+      setCheckedState(checked);
+      setTripConfigState(tripConfig);
+    });
+
+    return () => { unsubItems(); unsubTips(); unsubState(); };
   }, []);
 
-  const setItems = useCallback((items: PackItem[]) => {
-    storage.setItems(items);
+  const setItems = useCallback(async (items: PackItem[]) => {
     setItemsState(items);
+    setSyncing(true);
+    await saveItems(items).finally(() => setSyncing(false));
   }, []);
 
-  const setTips = useCallback((tips: Tip[]) => {
-    storage.setTips(tips);
+  const setTips = useCallback(async (tips: Tip[]) => {
     setTipsState(tips);
+    setSyncing(true);
+    await saveTips(tips).finally(() => setSyncing(false));
   }, []);
 
-  const setChecked = useCallback((checked: CheckedItems) => {
-    storage.setChecked(checked);
-    setCheckedState(checked);
-  }, []);
-
-  const setTripConfig = useCallback((config: TripConfig) => {
-    storage.setTripConfig(config);
+  const setTripConfig = useCallback(async (config: TripConfig) => {
     setTripConfigState(config);
+    setSyncing(true);
+    await saveTripConfig(config).finally(() => setSyncing(false));
   }, []);
 
-  const toggleCheck = useCallback((id: string) => {
+  const toggleCheck = useCallback(async (id: string) => {
     setCheckedState(prev => {
       const next = { ...prev, [id]: !prev[id] };
-      storage.setChecked(next);
+      saveChecked(next);
       return next;
     });
   }, []);
 
-  const resetChecked = useCallback(() => {
-    storage.resetChecked();
+  const resetChecked = useCallback(async () => {
     setCheckedState({});
+    setSyncing(true);
+    await saveChecked({}).finally(() => setSyncing(false));
   }, []);
 
   const filteredItems = items.filter(item => {
@@ -65,12 +90,12 @@ export function useCampingStore() {
     tips,
     setTips,
     checked,
-    setChecked,
     tripConfig,
     setTripConfig,
     toggleCheck,
     resetChecked,
     filteredItems,
     mounted,
+    syncing,
   };
 }

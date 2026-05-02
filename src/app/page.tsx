@@ -23,7 +23,7 @@ export default function Home() {
     tips, setTips,
     checked, tripConfig,
     setTripConfig, toggleCheck, resetChecked,
-    filteredItems, mounted,
+    filteredItems, mounted, syncing,
   } = useCampingStore();
 
   if (!mounted) {
@@ -67,9 +67,14 @@ export default function Home() {
       {/* Header */}
       <div className="bg-green-700 text-white px-4 pb-4">
         <div className="max-w-lg mx-auto">
-          <div className="flex items-center gap-2 pt-4 pb-1">
-            <span className="text-2xl">⛺</span>
-            <h1 className="text-xl font-bold tracking-tight">Kampeerapp</h1>
+          <div className="flex items-center justify-between pt-4 pb-1">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">⛺</span>
+              <h1 className="text-xl font-bold tracking-tight">Kampeerapp</h1>
+            </div>
+            {syncing && (
+              <span className="text-green-300 text-xs animate-pulse">↑ syncing…</span>
+            )}
           </div>
           <p className="text-green-200 text-xs">Alles voor een geslaagde camping trip</p>
         </div>
