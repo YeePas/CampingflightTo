@@ -26,6 +26,8 @@ export interface Tip {
   title: string;
   content: string;
   category: string;
+  imageUrl?: string;
+  knotIcon?: string;
 }
 
 export const CATEGORIES = [
@@ -38,6 +40,50 @@ export const CATEGORIES = [
   'Navigatie & Kaarten',
   'Gereedschap',
   'Bergen',
+  'Overig',
+] as const;
+
+export interface GroceryItem {
+  id: string;
+  name: string;
+  quantity?: string;
+  category?: string;
+  checked: boolean;
+}
+
+export interface TripPreset {
+  id: string;
+  name: string;
+  config: TripConfig;
+  notes?: string;
+}
+
+export interface CampingLocation {
+  id: string;
+  name: string;
+  address?: string;
+  gateCode?: string;
+  wifi?: string;
+  contact?: string;
+  notes?: string;
+}
+
+export interface DiaryEntry {
+  id: string;
+  title: string;
+  date: string;
+  content: string;
+  photoUrls?: string[];
+  locationId?: string;
+}
+
+export const GROCERY_CATEGORIES = [
+  'Vers',
+  'Houdbaar',
+  'Drinken',
+  'Ontbijt',
+  'Snacks',
+  'Bbq / vlees',
   'Overig',
 ] as const;
 

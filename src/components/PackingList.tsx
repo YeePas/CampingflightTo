@@ -31,6 +31,16 @@ export default function PackingList({ items, checked, onToggle }: Props) {
     return acc;
   }, {} as Record<string, PackItem[]>);
 
+  // Catch any item categories not in the predefined list
+  items.forEach(item => {
+    if (!CATEGORIES.includes(item.category as typeof CATEGORIES[number])) {
+      byCategory[item.category] = byCategory[item.category] || [];
+      if (!byCategory[item.category].find(i => i.id === item.id)) {
+        byCategory[item.category].push(item);
+      }
+    }
+  });
+
   if (items.length === 0) {
     return (
       <div className="text-center py-12 text-stone-400">

@@ -6,27 +6,37 @@ import TripConfigurator from '@/components/TripConfigurator';
 import PackingList from '@/components/PackingList';
 import TipsView from '@/components/TipsView';
 import BeheerView from '@/components/BeheerView';
+import GroceryList from '@/components/GroceryList';
+import TripsView from '@/components/TripsView';
 import { PackItem, Tip } from '@/lib/types';
 
-type Tab = 'paklijst' | 'tips' | 'beheer';
+type Tab = 'paklijst' | 'tips' | 'trips' | 'beheer';
+type PakSub = 'spullen' | 'boodschappen';
 
 const TABS: { id: Tab; label: string; emoji: string }[] = [
   { id: 'paklijst', label: 'Paklijst', emoji: '🎒' },
   { id: 'tips', label: 'Tips', emoji: '💡' },
+  { id: 'trips', label: 'Trips', emoji: '📖' },
   { id: 'beheer', label: 'Beheer', emoji: '⚙️' },
 ];
 
+function timeAgo(date: Date | null): string {
+  if (!date) return '';
+  const sec = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (sec < 5) return 'net gesynced';
+  if (sec < 60) return `${sec}s geleden`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min}m geleden`;
+  const hr = Math.floor(min / 60);
+  return `${hr}u geleden`;
+}
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>('paklijst');
-  const {
-    items, setItems,
-    tips, setTips,
-    checked, tripConfig,
-    setTripConfig, toggleCheck, resetChecked,
-    filteredItems, mounted, syncing,
-  } = useCampingStore();
+  const [pakSub, setPakSub] = useState<PakSub>('spullen');
+  const s = useCampingStore();
 
-  if (!mounted) {
+  if (!s.mounted) {
     return (
       <div className="min-h-screen bg-stone-50 flex items-center justify-center">
         <div className="text-stone-400">⛺ laden...</div>
@@ -34,49 +44,47 @@ export default function Home() {
     );
   }
 
-  const checkedCount = filteredItems.filter(i => checked[i.id]).length;
+  const checkedCount = s.filteredItems.filter(i => s.checked[i.id]).length;
 
-  const addItem = (item: Omit<PackItem, 'id'>) => {
-    const newItem: PackItem = { ...item, id: `custom_${Date.now()}` };
-    setItems([...items, newItem]);
-  };
+  const addItem = (item: Omit<PackItem, 'id'>) => s.setItems([...s.items, { ...item, id: `custom_${Date.now()}` }]);
+  const deleteItem = (id: string) => s.setItems(s.items.filter(i => i.id !== id));
+  const editItem = (updated: PackItem) => s.setItems(s.items.map(i => i.id === updated.id ? updated : i));
 
-  const deleteItem = (id: string) => {
-    setItems(items.filter(i => i.id !== id));
-  };
-
-  const editItem = (updated: PackItem) => {
-    setItems(items.map(i => i.id === updated.id ? updated : i));
-  };
-
-  const addTip = (tip: Omit<Tip, 'id'>) => {
-    const newTip: Tip = { ...tip, id: `tip_${Date.now()}` };
-    setTips([...tips, newTip]);
-  };
-
-  const deleteTip = (id: string) => {
-    setTips(tips.filter(t => t.id !== id));
-  };
-
-  const editTip = (updated: Tip) => {
-    setTips(tips.map(t => t.id === updated.id ? updated : t));
-  };
+  const addTip = (tip: Omit<Tip, 'id'>) => s.setTips([...s.tips, { ...tip, id: `tip_${Date.now()}` }]);
+  const deleteTip = (id: string) => s.setTips(s.tips.filter(t => t.id !== id));
+  const editTip = (updated: Tip) => s.setTips(s.tips.map(t => t.id === updated.id ? updated : t));
 
   return (
     <div className="min-h-screen bg-stone-50">
-      {/* Header */}
-      <div className="bg-green-700 text-white px-4 pb-4">
-        <div className="max-w-lg mx-auto">
-          <div className="flex items-center justify-between pt-4 pb-1">
+      {/* Hero header */}
+      <div
+        className="relative text-white"
+        style={{
+          backgroundImage:
+            "linear-gradient(180deg, rgba(20,40,30,0.55) 0%, rgba(20,40,30,0.85) 100%), url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=70')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div className="max-w-lg mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-2xl">⛺</span>
-              <h1 className="text-xl font-bold tracking-tight">Kampeerapp</h1>
+              <span className="text-xl">⛺</span>
+              <h1 className="text-lg font-bold tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>
+                A Campingflight To…
+              </h1>
             </div>
-            {syncing && (
-              <span className="text-green-300 text-xs animate-pulse">↑ syncing…</span>
-            )}
+            <button
+              onClick={() => s.refresh()}
+              disabled={s.syncing}
+              className="flex items-center gap-1.5 text-xs bg-white/15 hover:bg-white/25 backdrop-blur px-3 py-1.5 rounded-full transition-all disabled:opacity-50"
+              title={s.lastSync ? `Laatst gesynced: ${timeAgo(s.lastSync)}` : 'Nog niet gesynced'}
+            >
+              <span className={s.syncing ? 'animate-spin inline-block' : 'inline-block'}>↻</span>
+              <span className="hidden sm:inline">{s.syncing ? 'syncen…' : timeAgo(s.lastSync) || 'sync'}</span>
+            </button>
           </div>
-          <p className="text-green-200 text-xs">Alles voor een geslaagde camping trip</p>
+          <p className="text-xs text-white/70 mt-0.5 italic">Onderweg, paraat, gepakt.</p>
         </div>
       </div>
 
@@ -87,54 +95,79 @@ export default function Home() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-3 text-sm font-medium transition-all flex flex-col items-center gap-0.5 ${
+              className={`flex-1 py-2 text-xs font-medium transition-all flex flex-col items-center gap-0.5 ${
                 activeTab === tab.id
                   ? 'text-green-700 border-b-2 border-green-700'
                   : 'text-stone-500 hover:text-stone-700'
               }`}
             >
-              <span>{tab.emoji}</span>
+              <span className="text-base">{tab.emoji}</span>
               <span>{tab.label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Content */}
       <div className="max-w-lg mx-auto px-4 py-4 pb-8">
         {activeTab === 'paklijst' && (
           <>
-            <TripConfigurator
-              config={tripConfig}
-              onChange={setTripConfig}
-              onReset={resetChecked}
-              checkedCount={checkedCount}
-              totalCount={filteredItems.length}
-            />
-            <PackingList
-              items={filteredItems}
-              checked={checked}
-              onToggle={toggleCheck}
-            />
+            <div className="flex gap-1 bg-white rounded-2xl border border-stone-200 p-1 mb-4">
+              <button
+                onClick={() => setPakSub('spullen')}
+                className={`flex-1 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                  pakSub === 'spullen' ? 'bg-green-600 text-white' : 'text-stone-500'
+                }`}
+              >
+                🎒 Spullen
+              </button>
+              <button
+                onClick={() => setPakSub('boodschappen')}
+                className={`flex-1 py-1.5 rounded-xl text-xs font-medium transition-all ${
+                  pakSub === 'boodschappen' ? 'bg-green-600 text-white' : 'text-stone-500'
+                }`}
+              >
+                🛒 Boodschappen
+              </button>
+            </div>
+
+            {pakSub === 'spullen' && (
+              <>
+                <TripConfigurator
+                  config={s.tripConfig}
+                  onChange={s.setTripConfig}
+                  onReset={s.resetChecked}
+                  checkedCount={checkedCount}
+                  totalCount={s.filteredItems.length}
+                />
+                <PackingList items={s.filteredItems} checked={s.checked} onToggle={s.toggleCheck} />
+              </>
+            )}
+
+            {pakSub === 'boodschappen' && (
+              <GroceryList groceries={s.groceries} onChange={s.setGroceries} />
+            )}
           </>
         )}
 
         {activeTab === 'tips' && (
-          <TipsView
-            tips={tips}
-            onAdd={addTip}
-            onDelete={deleteTip}
-            onEdit={editTip}
+          <TipsView tips={s.tips} onAdd={addTip} onDelete={deleteTip} onEdit={editTip} />
+        )}
+
+        {activeTab === 'trips' && (
+          <TripsView
+            presets={s.presets}
+            setPresets={s.setPresets}
+            locations={s.locations}
+            setLocations={s.setLocations}
+            diary={s.diary}
+            setDiary={s.setDiary}
+            currentConfig={s.tripConfig}
+            applyConfig={s.setTripConfig}
           />
         )}
 
         {activeTab === 'beheer' && (
-          <BeheerView
-            items={items}
-            onAdd={addItem}
-            onDelete={deleteItem}
-            onEdit={editItem}
-          />
+          <BeheerView items={s.items} onAdd={addItem} onDelete={deleteItem} onEdit={editItem} />
         )}
       </div>
     </div>

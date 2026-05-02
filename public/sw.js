@@ -1,33 +1,38 @@
-const CACHE = 'kampeerapp-v1';
+const CACHE = 'kampeerapp-v2';
 
 self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE).then(cache =>
-      cache.addAll(['/', '/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png'])
-    )
-  );
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(['/manifest.json', '/icons/icon-192.png', '/icons/icon-512.png'])));
   self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    )
-  );
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))));
   self.clients.claim();
 });
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
-  e.respondWith(
-    caches.match(e.request).then(cached => {
-      const fresh = fetch(e.request).then(res => {
+  const url = new URL(e.request.url);
+
+  // Network-first for HTML/JS so fresh code always wins
+  const isAppShell = e.request.mode === 'navigate' || url.pathname.startsWith('/_next/');
+  if (isAppShell) {
+    e.respondWith(
+      fetch(e.request).then(res => {
         const clone = res.clone();
-        caches.open(CACHE).then(cache => cache.put(e.request, clone));
+        caches.open(CACHE).then(c => c.put(e.request, clone));
         return res;
-      }).catch(() => cached);
-      return cached || fresh;
-    })
+      }).catch(() => caches.match(e.request).then(c => c || new Response('Offline', { status: 503 })))
+    );
+    return;
+  }
+
+  // Cache-first for assets, icons, manifest
+  e.respondWith(
+    caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
+      const clone = res.clone();
+      caches.open(CACHE).then(c => c.put(e.request, clone));
+      return res;
+    }))
   );
 });
