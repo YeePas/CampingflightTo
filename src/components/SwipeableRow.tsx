@@ -68,7 +68,7 @@ export default function SwipeableRow({ onDelete, children, className = '', thres
         <button
           onClick={handleDelete}
           aria-label="Verwijder"
-          className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center shadow-sm active:bg-red-600 transition-colors"
+          className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center shadow-sm active:bg-red-600 transition-colors"
         >
           <TrashIcon />
         </button>
