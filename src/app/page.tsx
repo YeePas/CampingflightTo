@@ -108,6 +108,21 @@ export default function Home() {
     arm(`"${deleted?.name ?? 'Item'}" verwijderd`, () => s.setItems(snapshot));
   };
 
+  // Remove item only from the current trip type (not from other trip types)
+  const removeItemFromTrip = (id: string) => {
+    const snapshot = s.items;
+    const item = snapshot.find(i => i.id === id);
+    if (!item) return;
+    const newTypes = item.tripTypes.filter(t => t !== s.tripConfig.type);
+    if (newTypes.length === 0) {
+      // No trip types left → remove item entirely
+      s.setItems(snapshot.filter(i => i.id !== id));
+    } else {
+      s.setItems(snapshot.map(i => i.id === id ? { ...i, tripTypes: newTypes } : i));
+    }
+    arm(`"${item.name}" uit deze lijst verwijderd`, () => s.setItems(snapshot));
+  };
+
   const editItem = (updated: PackItem) =>
     s.setItems(s.items.map(i => i.id === updated.id ? updated : i));
 
@@ -205,7 +220,7 @@ export default function Home() {
                   onToggle={s.toggleCheck}
                   tripType={s.tripConfig.type}
                   tripConfig={s.tripConfig}
-                  onDelete={deleteItem}
+                  onDelete={removeItemFromTrip}
                   onAddItem={addItem}
                 />
               </>
