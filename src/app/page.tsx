@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useCampingStore } from '@/hooks/useStorage';
 import TripConfigurator from '@/components/TripConfigurator';
 import PackingList from '@/components/PackingList';
@@ -8,6 +8,7 @@ import TipsView from '@/components/TipsView';
 import BeheerView from '@/components/BeheerView';
 import GroceryList from '@/components/GroceryList';
 import TripsView from '@/components/TripsView';
+import UndoToast from '@/components/UndoToast';
 import { PackItem, Tip } from '@/lib/types';
 
 type Tab = 'paklijst' | 'tips' | 'trips' | 'beheer';
@@ -31,10 +32,38 @@ function timeAgo(date: Date | null): string {
   return `${hr}u geleden`;
 }
 
+type UndoState = { label: string; restore: () => void } | null;
+
+function useUndoToast() {
+  const [undo, setUndo] = useState<UndoState>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const arm = useCallback((label: string, restore: () => void) => {
+    clearTimeout(timerRef.current);
+    setUndo({ label, restore });
+    timerRef.current = setTimeout(() => setUndo(null), 4200);
+  }, []);
+
+  const dismiss = useCallback(() => {
+    clearTimeout(timerRef.current);
+    setUndo(null);
+  }, []);
+
+  const trigger = useCallback(() => {
+    if (!undo) return;
+    clearTimeout(timerRef.current);
+    undo.restore();
+    setUndo(null);
+  }, [undo]);
+
+  return { undo, arm, dismiss, trigger };
+}
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>('paklijst');
   const [pakSub, setPakSub] = useState<PakSub>('spullen');
   const s = useCampingStore();
+  const { undo, arm, dismiss, trigger } = useUndoToast();
 
   if (!s.mounted) {
     return (
@@ -46,13 +75,31 @@ export default function Home() {
 
   const checkedCount = s.filteredItems.filter(i => s.checked[i.id]).length;
 
-  const addItem = (item: Omit<PackItem, 'id'>) => s.setItems([...s.items, { ...item, id: `custom_${Date.now()}` }]);
-  const deleteItem = (id: string) => s.setItems(s.items.filter(i => i.id !== id));
-  const editItem = (updated: PackItem) => s.setItems(s.items.map(i => i.id === updated.id ? updated : i));
+  const addItem = (item: Omit<PackItem, 'id'>) =>
+    s.setItems([...s.items, { ...item, id: `custom_${Date.now()}` }]);
 
-  const addTip = (tip: Omit<Tip, 'id'>) => s.setTips([...s.tips, { ...tip, id: `tip_${Date.now()}` }]);
-  const deleteTip = (id: string) => s.setTips(s.tips.filter(t => t.id !== id));
-  const editTip = (updated: Tip) => s.setTips(s.tips.map(t => t.id === updated.id ? updated : t));
+  const deleteItem = (id: string) => {
+    const snapshot = s.items;
+    s.setItems(s.items.filter(i => i.id !== id));
+    const deleted = snapshot.find(i => i.id === id);
+    arm(`"${deleted?.name ?? 'Item'}" verwijderd`, () => s.setItems(snapshot));
+  };
+
+  const editItem = (updated: PackItem) =>
+    s.setItems(s.items.map(i => i.id === updated.id ? updated : i));
+
+  const addTip = (tip: Omit<Tip, 'id'>) =>
+    s.setTips([...s.tips, { ...tip, id: `tip_${Date.now()}` }]);
+
+  const deleteTip = (id: string) => {
+    const snapshot = s.tips;
+    s.setTips(s.tips.filter(t => t.id !== id));
+    const deleted = snapshot.find(t => t.id === id);
+    arm(`"${deleted?.title ?? 'Tip'}" verwijderd`, () => s.setTips(snapshot));
+  };
+
+  const editTip = (updated: Tip) =>
+    s.setTips(s.tips.map(t => t.id === updated.id ? updated : t));
 
   return (
     <div className="min-h-screen bg-stone-50">
@@ -124,7 +171,7 @@ export default function Home() {
             )}
 
             {pakSub === 'boodschappen' && (
-              <GroceryList groceries={s.groceries} onChange={s.setGroceries} />
+              <GroceryList groceries={s.groceries} onChange={s.setGroceries} onUndo={arm} />
             )}
           </>
         )}
@@ -141,6 +188,7 @@ export default function Home() {
             setLocations={s.setLocations}
             currentConfig={s.tripConfig}
             applyConfig={s.setTripConfig}
+            onUndo={arm}
           />
         )}
 
@@ -176,6 +224,15 @@ export default function Home() {
           ))}
         </div>
       </nav>
+
+      {/* Global undo toast */}
+      {undo && (
+        <UndoToast
+          label={undo.label}
+          onUndo={trigger}
+          onDismiss={dismiss}
+        />
+      )}
     </div>
   );
 }

@@ -8,9 +8,10 @@ import VoiceInput, { VoiceResult } from './VoiceInput';
 interface Props {
   groceries: GroceryItem[];
   onChange: (g: GroceryItem[]) => void;
+  onUndo?: (label: string, restore: () => void) => void;
 }
 
-export default function GroceryList({ groceries, onChange }: Props) {
+export default function GroceryList({ groceries, onChange, onUndo }: Props) {
   const [newName, setNewName] = useState('');
   const [newQty, setNewQty] = useState('');
 
@@ -40,7 +41,12 @@ export default function GroceryList({ groceries, onChange }: Props) {
   };
 
   const toggle = (id: string) => onChange(groceries.map(g => g.id === id ? { ...g, checked: !g.checked } : g));
-  const remove = (id: string) => onChange(groceries.filter(g => g.id !== id));
+  const remove = (id: string) => {
+    const snapshot = groceries;
+    const deleted = snapshot.find(g => g.id === id);
+    onChange(groceries.filter(g => g.id !== id));
+    onUndo?.(`"${deleted?.name ?? 'Item'}" verwijderd`, () => onChange(snapshot));
+  };
   const clearChecked = () => onChange(groceries.filter(g => !g.checked));
   const uncheckAll = () => onChange(groceries.map(g => ({ ...g, checked: false })));
 

@@ -12,6 +12,7 @@ interface Props {
   setLocations: (l: CampingLocation[]) => void;
   currentConfig: TripConfig;
   applyConfig: (c: TripConfig) => void;
+  onUndo?: (label: string, restore: () => void) => void;
 }
 
 type SubTab = 'presets' | 'plekken';
@@ -61,13 +62,13 @@ export default function TripsView(props: Props) {
         ))}
       </div>
 
-      {sub === 'presets' && <PresetsList {...props} />}
-      {sub === 'plekken' && <LocationsList {...props} />}
+      {sub === 'presets' && <PresetsList {...props} onUndo={props.onUndo} />}
+      {sub === 'plekken' && <LocationsList {...props} onUndo={props.onUndo} />}
     </div>
   );
 }
 
-function PresetsList({ presets, setPresets, currentConfig, applyConfig }: Props) {
+function PresetsList({ presets, setPresets, currentConfig, applyConfig, onUndo }: Props) {
   const [name, setName] = useState('');
 
   const save = () => {
@@ -75,7 +76,12 @@ function PresetsList({ presets, setPresets, currentConfig, applyConfig }: Props)
     setPresets([...presets, { id: `p_${Date.now()}`, name: name.trim(), config: currentConfig }]);
     setName('');
   };
-  const remove = (id: string) => setPresets(presets.filter(p => p.id !== id));
+  const remove = (id: string) => {
+    const snapshot = presets;
+    const deleted = snapshot.find(p => p.id === id);
+    setPresets(presets.filter(p => p.id !== id));
+    onUndo?.(`"${deleted?.name ?? 'Preset'}" verwijderd`, () => setPresets(snapshot));
+  };
 
   return (
     <div>
@@ -157,7 +163,7 @@ function PresetsList({ presets, setPresets, currentConfig, applyConfig }: Props)
 
 const EMPTY_LOC = { name: '', address: '', gateCode: '', wifi: '', contact: '', notes: '' };
 
-function LocationsList({ locations, setLocations }: Props) {
+function LocationsList({ locations, setLocations, onUndo }: Props) {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<CampingLocation | null>(null);
   const [form, setForm] = useState(EMPTY_LOC);
@@ -192,7 +198,12 @@ function LocationsList({ locations, setLocations }: Props) {
     setShowForm(true);
   };
 
-  const remove = (id: string) => setLocations(locations.filter(l => l.id !== id));
+  const remove = (id: string) => {
+    const snapshot = locations;
+    const deleted = snapshot.find(l => l.id === id);
+    setLocations(locations.filter(l => l.id !== id));
+    onUndo?.(`"${deleted?.name ?? 'Camping'}" verwijderd`, () => setLocations(snapshot));
+  };
 
   return (
     <div>
