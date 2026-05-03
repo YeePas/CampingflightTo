@@ -1,6 +1,6 @@
 {
-  "name": "Kampeerapp",
-  "short_name": "Kamperen",
+  "name": "A Campingflight To…",
+  "short_name": "Campingflight",
   "description": "Paklijsten, tips en knopen voor je kampeertrip",
   "start_url": "/",
   "display": "standalone",

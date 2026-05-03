@@ -2,6 +2,8 @@
 
 import { PackItem, CATEGORIES, TripType } from '@/lib/types';
 import { useState } from 'react';
+import SwipeableRow from './SwipeableRow';
+import { PencilIcon } from './Icons';
 
 interface Props {
   items: PackItem[];
@@ -207,23 +209,28 @@ export default function BeheerView({ items, onAdd, onDelete, onEdit }: Props) {
       {/* Items list */}
       <div className="space-y-2">
         {filtered.map(item => (
-          <div key={item.id} className="bg-white rounded-xl border border-stone-200 px-4 py-3 flex items-start justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-stone-700">{item.name}</div>
-              <div className="text-xs text-stone-400 mt-0.5 flex flex-wrap gap-1">
-                <span className="bg-stone-100 px-1.5 py-0.5 rounded">{item.category}</span>
-                {item.tripTypes.map(t => (
-                  <span key={t} className="bg-green-50 text-green-700 px-1.5 py-0.5 rounded">{t}</span>
-                ))}
-                {item.mountains && <span className="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">⛰️ bergen</span>}
-                {item.kids && <span className="bg-orange-50 text-orange-700 px-1.5 py-0.5 rounded">👧 kids</span>}
+          <SwipeableRow
+            key={item.id}
+            onDelete={() => onDelete(item.id)}
+            className="rounded-xl border border-stone-200 bg-white"
+          >
+            <div className="bg-white rounded-xl px-4 py-3 flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-stone-700">{item.name}</div>
+                <div className="text-xs text-stone-400 mt-0.5 flex flex-wrap gap-1">
+                  <span className="bg-stone-100 px-1.5 py-0.5 rounded">{item.category}</span>
+                  {item.tripTypes.map(t => (
+                    <span key={t} className="bg-green-50 text-green-700 px-1.5 py-0.5 rounded">{t}</span>
+                  ))}
+                  {item.mountains && <span className="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">⛰️ bergen</span>}
+                  {item.kids && <span className="bg-orange-50 text-orange-700 px-1.5 py-0.5 rounded">👧 kids</span>}
+                </div>
               </div>
+              <button onClick={() => startEdit(item)} className="text-stone-400 hover:text-stone-600 p-1 flex-shrink-0" aria-label="Bewerken">
+                <PencilIcon />
+              </button>
             </div>
-            <div className="flex gap-2 flex-shrink-0">
-              <button onClick={() => startEdit(item)} className="text-blue-400 hover:text-blue-600 text-sm p-1">✏️</button>
-              <button onClick={() => onDelete(item.id)} className="text-red-400 hover:text-red-600 text-sm p-1">🗑️</button>
-            </div>
-          </div>
+          </SwipeableRow>
         ))}
       </div>
     </div>

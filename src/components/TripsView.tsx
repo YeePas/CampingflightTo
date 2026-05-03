@@ -1,32 +1,46 @@
 'use client';
 
 import { useState } from 'react';
-import { TripPreset, CampingLocation, DiaryEntry, TripConfig } from '@/lib/types';
+import { TripPreset, CampingLocation, TripConfig } from '@/lib/types';
+import SwipeableRow from './SwipeableRow';
+import { PencilIcon } from './Icons';
 
 interface Props {
   presets: TripPreset[];
   setPresets: (p: TripPreset[]) => void;
   locations: CampingLocation[];
   setLocations: (l: CampingLocation[]) => void;
-  diary: DiaryEntry[];
-  setDiary: (d: DiaryEntry[]) => void;
   currentConfig: TripConfig;
   applyConfig: (c: TripConfig) => void;
 }
 
-type SubTab = 'presets' | 'plekken' | 'dagboek';
+type SubTab = 'presets' | 'plekken';
 
 const SUB_TABS: { id: SubTab; label: string; emoji: string }[] = [
   { id: 'presets', label: 'Presets', emoji: '🌟' },
   { id: 'plekken', label: 'Plekken', emoji: '📍' },
-  { id: 'dagboek', label: 'Dagboek', emoji: '📖' },
 ];
 
+const TRIP_EMOJI: Record<TripConfig['type'], string> = {
+  dag: '☀️',
+  weekend: '⛺',
+  week: '🗓️',
+};
+
+const TRIP_NAME: Record<TripConfig['type'], string> = {
+  dag: 'Dag',
+  weekend: 'Dag+',
+  week: 'Week+',
+};
+
 const tripLabel = (c: TripConfig) => {
-  const t = c.type === 'dag' ? 'Dagtrip' : c.type === 'weekend' ? 'Weekend' : 'Week+';
+  const t = TRIP_NAME[c.type];
   const extras = [c.mountains && '⛰️', c.kids && '👧'].filter(Boolean).join(' ');
   return extras ? `${t} ${extras}` : t;
 };
+
+const sameConfig = (a: TripConfig, b: TripConfig) =>
+  a.type === b.type && a.mountains === b.mountains && a.kids === b.kids;
 
 export default function TripsView(props: Props) {
   const [sub, setSub] = useState<SubTab>('presets');
@@ -49,7 +63,6 @@ export default function TripsView(props: Props) {
 
       {sub === 'presets' && <PresetsList {...props} />}
       {sub === 'plekken' && <LocationsList {...props} />}
-      {sub === 'dagboek' && <DiaryList {...props} />}
     </div>
   );
 }
@@ -66,14 +79,24 @@ function PresetsList({ presets, setPresets, currentConfig, applyConfig }: Props)
 
   return (
     <div>
-      <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-3 mb-4">
-        <p className="text-xs text-stone-500 mb-2">
-          Bewaar de huidige trip-instellingen ({tripLabel(currentConfig)}) als preset.
+      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 mb-4">
+        <p className="text-xs text-amber-900 leading-relaxed">
+          <strong>Presets</strong> zijn vaste trip-recepten. Stel je trip in (bv. <em>Week + Bergen + Kinderen</em>),
+          bewaar onder een naam, en activeer hem later met één tap zodat je paklijst meteen klopt.
         </p>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-3 mb-4">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xs text-stone-500">Huidige trip:</span>
+          <span className="text-xs font-medium text-stone-700 bg-stone-100 px-2 py-0.5 rounded-full">
+            {tripLabel(currentConfig)}
+          </span>
+        </div>
         <div className="flex gap-2">
           <input
             type="text"
-            placeholder="Naam preset"
+            placeholder="Naam (bv. Bergen weekend met kids)"
             value={name}
             onChange={e => setName(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && save()}
@@ -93,22 +116,39 @@ function PresetsList({ presets, setPresets, currentConfig, applyConfig }: Props)
         <div className="text-center py-8 text-stone-400 text-sm">Nog geen presets.</div>
       ) : (
         <div className="space-y-2">
-          {presets.map(p => (
-            <div key={p.id} className="bg-white rounded-xl border border-stone-200 px-4 py-3 flex items-center gap-3">
-              <span className="text-lg">🌟</span>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-stone-700 truncate">{p.name}</div>
-                <div className="text-xs text-stone-400">{tripLabel(p.config)}</div>
-              </div>
-              <button
-                onClick={() => applyConfig(p.config)}
-                className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded-full font-medium hover:bg-green-200"
+          {presets.map(p => {
+            const isActive = sameConfig(p.config, currentConfig);
+            return (
+              <SwipeableRow
+                key={p.id}
+                onDelete={() => remove(p.id)}
+                className={`rounded-xl border ${isActive ? 'border-green-400 bg-green-50' : 'border-stone-200 bg-white'}`}
               >
-                Laden
-              </button>
-              <button onClick={() => remove(p.id)} className="text-stone-300 hover:text-red-500 text-xs">✕</button>
-            </div>
-          ))}
+                <div className={`rounded-xl px-4 py-3 flex items-center gap-3 ${isActive ? 'bg-green-50' : 'bg-white'}`}>
+                  <span className="text-lg">{TRIP_EMOJI[p.config.type]}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-medium text-stone-700 truncate">{p.name}</span>
+                      {isActive && <span className="text-[10px] bg-green-600 text-white px-1.5 py-0.5 rounded-full font-medium">Actief</span>}
+                    </div>
+                    <div className="text-xs text-stone-400 flex items-center gap-1">
+                      <span>{TRIP_NAME[p.config.type]}</span>
+                      {p.config.mountains && <span>· ⛰️</span>}
+                      {p.config.kids && <span>· 👧</span>}
+                    </div>
+                  </div>
+                  {!isActive && (
+                    <button
+                      onClick={() => applyConfig(p.config)}
+                      className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-full font-medium hover:bg-green-700 flex-shrink-0"
+                    >
+                      Activeer
+                    </button>
+                  )}
+                </div>
+              </SwipeableRow>
+            );
+          })}
         </div>
       )}
     </div>
@@ -208,33 +248,40 @@ function LocationsList({ locations, setLocations }: Props) {
         {locations.map(l => {
           const isOpen = expanded === l.id;
           return (
-            <div key={l.id} className="bg-white rounded-xl border border-stone-200 overflow-hidden">
-              <button
-                onClick={() => setExpanded(isOpen ? null : l.id)}
-                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-stone-50"
-              >
-                <span>📍</span>
-                <span className="flex-1 text-sm font-medium text-stone-700 truncate">{l.name}</span>
-                <span className="text-stone-400 text-xs">{isOpen ? '▲' : '▼'}</span>
-              </button>
-              {isOpen && (
-                <div className="border-t border-stone-100 px-4 py-3 space-y-1 text-sm">
-                  {l.address && <Field label="Adres" value={l.address} />}
-                  {l.gateCode && <Field label="Code" value={l.gateCode} mono />}
-                  {l.wifi && <Field label="WiFi" value={l.wifi} mono />}
-                  {l.contact && <Field label="Contact" value={l.contact} />}
-                  {l.notes && (
-                    <div className="pt-1">
-                      <pre className="text-xs text-stone-600 whitespace-pre-wrap font-sans">{l.notes}</pre>
+            <SwipeableRow
+              key={l.id}
+              onDelete={() => remove(l.id)}
+              className="bg-white rounded-xl border border-stone-200 overflow-hidden"
+            >
+              <div className="bg-white">
+                <button
+                  onClick={() => setExpanded(isOpen ? null : l.id)}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-stone-50"
+                >
+                  <span>📍</span>
+                  <span className="flex-1 text-sm font-medium text-stone-700 truncate">{l.name}</span>
+                  <span className="text-stone-400 text-xs">{isOpen ? '▲' : '▼'}</span>
+                </button>
+                {isOpen && (
+                  <div className="border-t border-stone-100 px-4 py-3 space-y-1 text-sm">
+                    {l.address && <Field label="Adres" value={l.address} />}
+                    {l.gateCode && <Field label="Code" value={l.gateCode} mono />}
+                    {l.wifi && <Field label="WiFi" value={l.wifi} mono />}
+                    {l.contact && <Field label="Contact" value={l.contact} />}
+                    {l.notes && (
+                      <div className="pt-1">
+                        <pre className="text-xs text-stone-600 whitespace-pre-wrap font-sans">{l.notes}</pre>
+                      </div>
+                    )}
+                    <div className="flex gap-3 pt-2 border-t border-stone-100 mt-2">
+                      <button onClick={() => startEdit(l)} className="text-xs text-stone-500 flex items-center gap-1">
+                        <PencilIcon className="w-3.5 h-3.5" /> Bewerken
+                      </button>
                     </div>
-                  )}
-                  <div className="flex gap-3 pt-2 border-t border-stone-100 mt-2">
-                    <button onClick={() => startEdit(l)} className="text-xs text-blue-500">✏️ Bewerken</button>
-                    <button onClick={() => remove(l.id)} className="text-xs text-red-500">🗑️ Verwijder</button>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            </SwipeableRow>
           );
         })}
       </div>
@@ -247,137 +294,6 @@ function Field({ label, value, mono }: { label: string; value: string; mono?: bo
     <div className="flex gap-2">
       <span className="text-xs text-stone-400 w-16 flex-shrink-0">{label}</span>
       <span className={`text-sm text-stone-700 break-all ${mono ? 'font-mono' : ''}`}>{value}</span>
-    </div>
-  );
-}
-
-const EMPTY_DIARY = { title: '', date: '', content: '', photoUrl: '' };
-
-function DiaryList({ diary, setDiary, locations }: Props) {
-  const [showForm, setShowForm] = useState(false);
-  const [editing, setEditing] = useState<DiaryEntry | null>(null);
-  const [form, setForm] = useState(EMPTY_DIARY);
-  const [expanded, setExpanded] = useState<string | null>(null);
-
-  const submit = () => {
-    if (!form.title.trim() || !form.content.trim()) return;
-    const photoUrls = form.photoUrl ? [form.photoUrl] : [];
-    const data = {
-      title: form.title.trim(),
-      date: form.date || new Date().toISOString().slice(0, 10),
-      content: form.content,
-      photoUrls,
-    };
-    if (editing) {
-      setDiary(diary.map(d => d.id === editing.id ? { ...editing, ...data } : d));
-    } else {
-      setDiary([{ id: `d_${Date.now()}`, ...data }, ...diary]);
-    }
-    setForm(EMPTY_DIARY);
-    setShowForm(false);
-    setEditing(null);
-  };
-
-  const startEdit = (d: DiaryEntry) => {
-    setEditing(d);
-    setForm({
-      title: d.title, date: d.date, content: d.content,
-      photoUrl: d.photoUrls?.[0] ?? '',
-    });
-    setShowForm(true);
-  };
-
-  const remove = (id: string) => setDiary(diary.filter(d => d.id !== id));
-
-  const sorted = [...diary].sort((a, b) => b.date.localeCompare(a.date));
-
-  return (
-    <div>
-      {!showForm ? (
-        <button
-          onClick={() => { setShowForm(true); setEditing(null); setForm({ ...EMPTY_DIARY, date: new Date().toISOString().slice(0, 10) }); }}
-          className="w-full py-3 mb-4 rounded-2xl bg-green-600 text-white font-medium hover:bg-green-700"
-        >
-          + Nieuwe entry
-        </button>
-      ) : (
-        <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-4 space-y-2 mb-4">
-          <h3 className="font-semibold text-stone-700 mb-1">{editing ? 'Entry bewerken' : 'Nieuwe entry'}</h3>
-          <input
-            type="text"
-            placeholder="Titel (bijv. Aankomst Monviso)"
-            value={form.title}
-            onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-            className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm"
-          />
-          <input
-            type="date"
-            value={form.date}
-            onChange={e => setForm(p => ({ ...p, date: e.target.value }))}
-            className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm"
-          />
-          <textarea
-            placeholder="Wat was er bijzonder vandaag?"
-            value={form.content}
-            onChange={e => setForm(p => ({ ...p, content: e.target.value }))}
-            rows={5}
-            className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm resize-none"
-          />
-          <input
-            type="url"
-            placeholder="Foto-URL (optioneel)"
-            value={form.photoUrl}
-            onChange={e => setForm(p => ({ ...p, photoUrl: e.target.value }))}
-            className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm"
-          />
-          <p className="text-xs text-stone-400">Tip: upload je foto naar bijv. imgur.com en plak hier de directe link.</p>
-          <div className="flex gap-2">
-            <button onClick={submit} className="flex-1 bg-green-600 text-white py-2 rounded-xl text-sm font-medium">
-              {editing ? 'Opslaan' : 'Toevoegen'}
-            </button>
-            <button onClick={() => { setShowForm(false); setEditing(null); }} className="flex-1 bg-stone-100 text-stone-600 py-2 rounded-xl text-sm font-medium">
-              Annuleren
-            </button>
-          </div>
-        </div>
-      )}
-
-      {diary.length === 0 && !showForm && (
-        <div className="text-center py-8 text-stone-400 text-sm">Nog geen herinneringen.</div>
-      )}
-
-      <div className="space-y-3">
-        {sorted.map(d => {
-          const isOpen = expanded === d.id;
-          return (
-            <div key={d.id} className="bg-white rounded-2xl border border-stone-200 overflow-hidden">
-              <button
-                onClick={() => setExpanded(isOpen ? null : d.id)}
-                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-stone-50"
-              >
-                <span>📖</span>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-stone-700 truncate">{d.title}</div>
-                  <div className="text-xs text-stone-400">{d.date}</div>
-                </div>
-                <span className="text-stone-400 text-xs">{isOpen ? '▲' : '▼'}</span>
-              </button>
-              {isOpen && (
-                <div className="border-t border-stone-100 px-4 py-3">
-                  {d.photoUrls?.[0] && (
-                    <img src={d.photoUrls[0]} alt={d.title} className="w-full rounded-xl mb-3 max-h-72 object-cover" loading="lazy" />
-                  )}
-                  <pre className="text-sm text-stone-600 whitespace-pre-wrap font-sans leading-relaxed">{d.content}</pre>
-                  <div className="flex gap-3 pt-3 border-t border-stone-100 mt-3">
-                    <button onClick={() => startEdit(d)} className="text-xs text-blue-500">✏️ Bewerken</button>
-                    <button onClick={() => remove(d.id)} className="text-xs text-red-500">🗑️ Verwijder</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }

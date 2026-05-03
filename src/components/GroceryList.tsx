@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { GroceryItem, GROCERY_CATEGORIES } from '@/lib/types';
+import SwipeableRow from './SwipeableRow';
 
 interface Props {
   groceries: GroceryItem[];
@@ -123,30 +124,33 @@ export default function GroceryList({ groceries, onChange }: Props) {
               <span className="text-xs text-stone-400 ml-auto">{byCategory[cat].length}</span>
             </div>
             {byCategory[cat].map((g, idx) => (
-              <div
+              <SwipeableRow
                 key={g.id}
-                className={`flex items-center gap-3 px-4 py-2.5 ${idx > 0 ? 'border-t border-stone-50' : ''}`}
+                onDelete={() => remove(g.id)}
+                className={`bg-white ${idx > 0 ? 'border-t border-stone-50' : ''}`}
               >
-                <button
-                  onClick={() => toggle(g.id)}
-                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                    g.checked ? 'bg-green-500 border-green-500' : 'border-stone-300'
-                  }`}
-                >
-                  {g.checked && (
-                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </button>
-                <button onClick={() => toggle(g.id)} className="flex-1 text-left text-sm">
-                  <span className={g.checked ? 'line-through text-stone-400' : 'text-stone-700'}>
-                    {g.name}
-                  </span>
-                  {g.quantity && <span className="text-xs text-stone-400 ml-2">({g.quantity})</span>}
-                </button>
-                <button onClick={() => remove(g.id)} className="text-stone-300 hover:text-red-500 text-xs">✕</button>
-              </div>
+                <div className="flex items-center gap-3 px-4 py-2.5 bg-white">
+                  <button
+                    onClick={() => toggle(g.id)}
+                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                      g.checked ? 'bg-green-500 border-green-500' : 'border-stone-300'
+                    }`}
+                  >
+                    {g.checked && (
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </button>
+                  <button onClick={() => toggle(g.id)} className="flex-1 text-left text-sm">
+                    <span className={g.checked ? 'line-through text-stone-400' : 'text-stone-700'}>
+                      {g.name}
+                    </span>
+                    {g.quantity && <span className="text-xs text-stone-400 ml-2">({g.quantity})</span>}
+                  </button>
+                  <button onClick={() => remove(g.id)} className="text-stone-300 hover:text-red-500 text-xs hidden sm:inline-block">✕</button>
+                </div>
+              </SwipeableRow>
             ))}
           </div>
         ))}

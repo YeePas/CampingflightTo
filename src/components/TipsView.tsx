@@ -3,6 +3,7 @@
 import { Tip, TIP_CATEGORIES } from '@/lib/types';
 import { useState } from 'react';
 import KnotIllustration from './KnotIllustration';
+import { PencilIcon } from './Icons';
 
 interface Props {
   tips: Tip[];
@@ -134,9 +135,9 @@ export default function TipsView({ tips, onAdd, onDelete, onEdit }: Props) {
                   <div className="flex gap-2 mt-3 pt-3 border-t border-stone-100">
                     <button
                       onClick={() => startEdit(tip)}
-                      className="text-xs text-blue-500 hover:text-blue-700 font-medium"
+                      className="text-xs text-stone-500 hover:text-stone-700 font-medium flex items-center gap-1"
                     >
-                      ✏️ Bewerken
+                      <PencilIcon className="w-3.5 h-3.5" /> Bewerken
                     </button>
                     <button
                       onClick={() => onDelete(tip.id)}

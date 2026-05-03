@@ -6,13 +6,13 @@ import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 const geist = Geist({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Kampeerapp",
+  title: "A Campingflight To…",
   description: "Paklijsten, tips en knopen voor je kampeertrip",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Kampeerapp",
+    title: "Campingflight",
   },
 };
 

@@ -88,27 +88,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Tab bar */}
-      <div className="bg-white border-b border-stone-200 sticky top-0 z-10 shadow-sm">
-        <div className="max-w-lg mx-auto flex">
-          {TABS.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-2 text-xs font-medium transition-all flex flex-col items-center gap-0.5 ${
-                activeTab === tab.id
-                  ? 'text-green-700 border-b-2 border-green-700'
-                  : 'text-stone-500 hover:text-stone-700'
-              }`}
-            >
-              <span className="text-base">{tab.emoji}</span>
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="max-w-lg mx-auto px-4 py-4 pb-8">
+      <div className="max-w-lg mx-auto px-4 py-4 pb-28">
         {activeTab === 'paklijst' && (
           <>
             <div className="flex gap-1 bg-white rounded-2xl border border-stone-200 p-1 mb-4">
@@ -159,8 +139,6 @@ export default function Home() {
             setPresets={s.setPresets}
             locations={s.locations}
             setLocations={s.setLocations}
-            diary={s.diary}
-            setDiary={s.setDiary}
             currentConfig={s.tripConfig}
             applyConfig={s.setTripConfig}
           />
@@ -170,6 +148,34 @@ export default function Home() {
           <BeheerView items={s.items} onAdd={addItem} onDelete={deleteItem} onEdit={editItem} />
         )}
       </div>
+
+      {/* Bottom tab bar */}
+      <nav
+        className="fixed bottom-0 inset-x-0 bg-white border-t border-stone-200 shadow-[0_-2px_10px_rgba(0,0,0,0.04)] z-20"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        <div className="max-w-lg mx-auto flex">
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => {
+                if (activeTab === tab.id) {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                  setActiveTab(tab.id);
+                  window.scrollTo({ top: 0 });
+                }
+              }}
+              className={`flex-1 py-2 text-xs font-medium transition-all flex flex-col items-center gap-0.5 ${
+                activeTab === tab.id ? 'text-green-700' : 'text-stone-500'
+              }`}
+            >
+              <span className={`text-lg transition-transform ${activeTab === tab.id ? 'scale-110' : ''}`}>{tab.emoji}</span>
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }

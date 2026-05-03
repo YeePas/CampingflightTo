@@ -11,8 +11,8 @@ interface Props {
 }
 
 const TRIP_TYPES: { value: TripType; label: string; emoji: string }[] = [
-  { value: 'dag', label: 'Dagtrip', emoji: '☀️' },
-  { value: 'weekend', label: 'Weekend', emoji: '⛺' },
+  { value: 'dag', label: 'Dag', emoji: '☀️' },
+  { value: 'weekend', label: 'Dag+', emoji: '⛺' },
   { value: 'week', label: 'Week+', emoji: '🗓️' },
 ];
 

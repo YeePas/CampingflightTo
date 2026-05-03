@@ -2,7 +2,7 @@ import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from './firebase';
 import {
   PackItem, Tip, CheckedItems, TripConfig,
-  GroceryItem, TripPreset, CampingLocation, DiaryEntry,
+  GroceryItem, TripPreset, CampingLocation,
 } from './types';
 import { DEFAULT_ITEMS, DEFAULT_TIPS } from './defaultData';
 
@@ -13,7 +13,6 @@ const REF = {
   groceries: () => doc(db, 'camping', 'groceries'),
   presets: () => doc(db, 'camping', 'presets'),
   locations: () => doc(db, 'camping', 'locations'),
-  diary: () => doc(db, 'camping', 'diary'),
 };
 
 // --- Items ---
@@ -131,8 +130,3 @@ export const subscribePresets = (cb: (p: TripPreset[]) => void) => subscribeList
 export const fetchLocations = () => fetchList<CampingLocation>(REF.locations(), 'locations');
 export const saveLocations = (locations: CampingLocation[]) => setDoc(REF.locations(), { locations });
 export const subscribeLocations = (cb: (l: CampingLocation[]) => void) => subscribeList<CampingLocation>(REF.locations(), 'locations', cb);
-
-// Diary
-export const fetchDiary = () => fetchList<DiaryEntry>(REF.diary(), 'diary');
-export const saveDiary = (diary: DiaryEntry[]) => setDoc(REF.diary(), { diary });
-export const subscribeDiary = (cb: (d: DiaryEntry[]) => void) => subscribeList<DiaryEntry>(REF.diary(), 'diary', cb);

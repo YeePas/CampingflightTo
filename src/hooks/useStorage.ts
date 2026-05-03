@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   PackItem, Tip, CheckedItems, TripConfig,
-  GroceryItem, TripPreset, CampingLocation, DiaryEntry,
+  GroceryItem, TripPreset, CampingLocation,
 } from '@/lib/types';
 import {
   subscribeItems, saveItems, fetchItems,
@@ -12,7 +12,6 @@ import {
   subscribeGroceries, saveGroceries, fetchGroceries,
   subscribePresets, savePresets, fetchPresets,
   subscribeLocations, saveLocations, fetchLocations,
-  subscribeDiary, saveDiary, fetchDiary,
 } from '@/lib/firestore';
 
 export function useCampingStore() {
@@ -23,7 +22,6 @@ export function useCampingStore() {
   const [groceries, setGroceriesState] = useState<GroceryItem[]>([]);
   const [presets, setPresetsState] = useState<TripPreset[]>([]);
   const [locations, setLocationsState] = useState<CampingLocation[]>([]);
-  const [diary, setDiaryState] = useState<DiaryEntry[]>([]);
 
   const [mounted, setMounted] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -34,9 +32,9 @@ export function useCampingStore() {
   const refresh = useCallback(async () => {
     setSyncing(true);
     try {
-      const [i, t, s, g, p, l, d] = await Promise.all([
+      const [i, t, s, g, p, l] = await Promise.all([
         fetchItems(), fetchTips(), fetchState(),
-        fetchGroceries(), fetchPresets(), fetchLocations(), fetchDiary(),
+        fetchGroceries(), fetchPresets(), fetchLocations(),
       ]);
       setItemsState(i);
       setTipsState(t);
@@ -45,7 +43,6 @@ export function useCampingStore() {
       setGroceriesState(g);
       setPresetsState(p);
       setLocationsState(l);
-      setDiaryState(d);
       setLastSync(new Date());
     } finally {
       setSyncing(false);
@@ -66,7 +63,6 @@ export function useCampingStore() {
       subscribeGroceries(g => { setGroceriesState(g); setLastSync(new Date()); }),
       subscribePresets(p => { setPresetsState(p); setLastSync(new Date()); }),
       subscribeLocations(l => { setLocationsState(l); setLastSync(new Date()); }),
-      subscribeDiary(d => { setDiaryState(d); setLastSync(new Date()); }),
     ];
 
     const onVisible = () => {
@@ -95,7 +91,6 @@ export function useCampingStore() {
   const setGroceries = useCallback(wrapSet<GroceryItem[]>(setGroceriesState, saveGroceries), []);
   const setPresets = useCallback(wrapSet<TripPreset[]>(setPresetsState, savePresets), []);
   const setLocations = useCallback(wrapSet<CampingLocation[]>(setLocationsState, saveLocations), []);
-  const setDiary = useCallback(wrapSet<DiaryEntry[]>(setDiaryState, saveDiary), []);
 
   const toggleCheck = useCallback((id: string) => {
     setCheckedState(prev => {
@@ -127,6 +122,5 @@ export function useCampingStore() {
     groceries, setGroceries,
     presets, setPresets,
     locations, setLocations,
-    diary, setDiary,
   };
 }

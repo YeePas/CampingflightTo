@@ -68,15 +68,6 @@ export interface CampingLocation {
   notes?: string;
 }
 
-export interface DiaryEntry {
-  id: string;
-  title: string;
-  date: string;
-  content: string;
-  photoUrls?: string[];
-  locationId?: string;
-}
-
 export const GROCERY_CATEGORIES = [
   'Vers',
   'Houdbaar',
