@@ -26,12 +26,16 @@ const TRIP_EMOJI: Record<TripConfig['type'], string> = {
   dag: '⛺',
   weekend: '⛺',
   week: '🗓️',
+  wandeldag: '⛰️',
+  wandeltrip: '🥾',
 };
 
 const TRIP_NAME: Record<TripConfig['type'], string> = {
   dag: '+1 nacht',
   weekend: '+1 nacht',
   week: '+7 nachten',
+  wandeldag: 'Wandeldag',
+  wandeltrip: 'Wandeltrip',
 };
 
 const tripLabel = (c: TripConfig) => {

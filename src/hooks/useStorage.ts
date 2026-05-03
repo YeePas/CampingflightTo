@@ -131,7 +131,8 @@ export function useCampingStore() {
 
   const filteredItems = items.filter(item => {
     if (!item.tripTypes.includes(tripConfig.type)) return false;
-    if (item.mountains && !tripConfig.mountains) return false;
+    const effectiveMountains = tripConfig.mountains || tripConfig.type === 'wandeldag' || tripConfig.type === 'wandeltrip';
+    if (item.mountains && !effectiveMountains) return false;
     if (item.kids && !tripConfig.kids) return false;
     return true;
   });

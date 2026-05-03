@@ -41,6 +41,18 @@ export default function PackingList({ items, checked, onToggle }: Props) {
     }
   });
 
+  const allCollapsed = Object.keys(byCategory).every(cat => collapsed[cat]);
+
+  const toggleAll = () => {
+    if (allCollapsed) {
+      setCollapsed({});
+    } else {
+      const all: Record<string, boolean> = {};
+      Object.keys(byCategory).forEach(cat => { all[cat] = true; });
+      setCollapsed(all);
+    }
+  };
+
   if (items.length === 0) {
     return (
       <div className="text-center py-12 text-stone-400">
@@ -52,6 +64,11 @@ export default function PackingList({ items, checked, onToggle }: Props) {
 
   return (
     <div className="space-y-3">
+      <div className="flex justify-end mb-2">
+        <button onClick={toggleAll} className="text-xs text-stone-400 hover:text-stone-600">
+          {allCollapsed ? '↕ alles uitklappen' : '↕ alles inklappen'}
+        </button>
+      </div>
       {Object.entries(byCategory).map(([category, catItems]) => {
         const checkedInCat = catItems.filter(i => checked[i.id]).length;
         const isCollapsed = collapsed[category];

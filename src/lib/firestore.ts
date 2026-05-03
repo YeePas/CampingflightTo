@@ -36,12 +36,24 @@ export async function fetchItems(): Promise<ItemsDoc> {
   const deletedDefaultIds: string[] = snap.data().deletedDefaultIds ?? [];
   const deletedSet = new Set(deletedDefaultIds);
 
+  // Migrate: add new tripTypes from defaults to existing items (never removes custom ones)
+  let migrated = false;
+  const migratedExisting = existing.map(item => {
+    const def = DEFAULT_ITEMS.find(d => d.id === item.id);
+    if (!def) return item;
+    const newTypes = def.tripTypes.filter(t => !(item.tripTypes as string[]).includes(t));
+    if (newTypes.length === 0) return item;
+    migrated = true;
+    return { ...item, tripTypes: [...item.tripTypes, ...newTypes] };
+  });
+  const base = migrated ? migratedExisting : existing;
+  const existingIds = new Set(base.map((i: PackItem) => i.id));
+
   // Merge new defaults that are not yet in the list AND not deliberately deleted
-  const existingIds = new Set(existing.map(i => i.id));
   const missing = DEFAULT_ITEMS.filter(i => !existingIds.has(i.id) && !deletedSet.has(i.id));
 
-  if (missing.length > 0) {
-    const merged = [...existing, ...missing];
+  if (missing.length > 0 || migrated) {
+    const merged = [...base, ...missing];
     await setDoc(REF.items(), { items: merged, deletedDefaultIds });
     return { items: merged, deletedDefaultIds };
   }
