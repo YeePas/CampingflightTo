@@ -1,13 +1,17 @@
 'use client';
 
-import { PackItem, CheckedItems, CATEGORIES, TripType } from '@/lib/types';
+import { PackItem, CheckedItems, CATEGORIES, TripType, TripConfig } from '@/lib/types';
 import { useState } from 'react';
+import SwipeableRow from './SwipeableRow';
 
 interface Props {
   items: PackItem[];
   checked: CheckedItems;
   onToggle: (id: string) => void;
   tripType: TripType;
+  onDelete?: (id: string) => void;
+  onAddItem?: (item: Omit<PackItem, 'id'>) => void;
+  tripConfig?: TripConfig;
 }
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -23,9 +27,11 @@ const CATEGORY_EMOJI: Record<string, string> = {
   'Overig': '📦',
 };
 
-export default function PackingList({ items, checked, onToggle, tripType }: Props) {
+export default function PackingList({ items, checked, onToggle, tripType, onDelete, onAddItem, tripConfig }: Props) {
   const isHikingMode = tripType === 'wandeldag' || tripType === 'wandeltrip';
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [adding, setAdding] = useState<string | null>(null); // category being added to
+  const [addName, setAddName] = useState('');
 
   const byCategory = CATEGORIES.reduce((acc, cat) => {
     const catItems = items.filter(i => i.category === cat);
@@ -53,6 +59,19 @@ export default function PackingList({ items, checked, onToggle, tripType }: Prop
       Object.keys(byCategory).forEach(cat => { all[cat] = true; });
       setCollapsed(all);
     }
+  };
+
+  const submitAdd = (category: string) => {
+    if (!addName.trim() || !onAddItem || !tripConfig) return;
+    onAddItem({
+      name: addName.trim(),
+      category,
+      tripTypes: [tripConfig.type],
+      mountains: category === 'Bergen',
+      kids: tripConfig.kids ?? false,
+    });
+    setAddName('');
+    setAdding(null);
   };
 
   if (items.length === 0) {
@@ -93,50 +112,104 @@ export default function PackingList({ items, checked, onToggle, tripType }: Prop
 
             {!isCollapsed && (
               <div className="border-t border-stone-100">
-                {catItems.map((item, idx) => (
-                  <button
-                    key={item.id}
-                    onClick={() => onToggle(item.id)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-stone-50 ${
-                      idx > 0 ? 'border-t border-stone-50' : ''
-                    }`}
-                  >
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                      checked[item.id]
-                        ? 'bg-green-500 border-green-500'
-                        : 'border-stone-300'
-                    }`}>
-                      {checked[item.id] && (
-                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <span className={`text-sm ${checked[item.id] ? 'line-through text-stone-400' : 'text-stone-700'}`}>
-                        {item.name}
-                      </span>
-                      {item.quantity && (
-                        <span className="text-xs text-stone-400 ml-1">({item.quantity})</span>
-                      )}
-                      {item.notes && (
-                        <p className="text-xs text-stone-400 mt-0.5">{item.notes}</p>
-                      )}
-                    </div>
-                    {!isHikingMode && (
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        {!item.tripTypes.includes('dag') && item.tripTypes.includes('weekend') && (
-                          <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium">1+</span>
+                {catItems.map((item, idx) => {
+                  const rowContent = (
+                    <button
+                      onClick={() => onToggle(item.id)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-stone-50 ${
+                        !onDelete && idx > 0 ? 'border-t border-stone-50' : ''
+                      }`}
+                    >
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                        checked[item.id]
+                          ? 'bg-green-500 border-green-500'
+                          : 'border-stone-300'
+                      }`}>
+                        {checked[item.id] && (
+                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
                         )}
-                        {!item.tripTypes.includes('dag') && !item.tripTypes.includes('weekend') && item.tripTypes.includes('week') && (
-                          <span className="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded-full font-medium">7+</span>
-                        )}
-                        {item.mountains && <span className="text-xs">⛰️</span>}
-                        {item.kids && <span className="text-xs">👧</span>}
                       </div>
+                      <div className="flex-1 min-w-0">
+                        <span className={`text-sm ${checked[item.id] ? 'line-through text-stone-400' : 'text-stone-700'}`}>
+                          {item.name}
+                        </span>
+                        {item.quantity && (
+                          <span className="text-xs text-stone-400 ml-1">({item.quantity})</span>
+                        )}
+                        {item.notes && (
+                          <p className="text-xs text-stone-400 mt-0.5">{item.notes}</p>
+                        )}
+                      </div>
+                      {!isHikingMode && (
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          {!item.tripTypes.includes('dag') && item.tripTypes.includes('weekend') && (
+                            <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium">1+</span>
+                          )}
+                          {!item.tripTypes.includes('dag') && !item.tripTypes.includes('weekend') && item.tripTypes.includes('week') && (
+                            <span className="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded-full font-medium">7+</span>
+                          )}
+                          {item.mountains && <span className="text-xs">⛰️</span>}
+                          {item.kids && <span className="text-xs">👧</span>}
+                        </div>
+                      )}
+                    </button>
+                  );
+
+                  return onDelete ? (
+                    <SwipeableRow
+                      key={item.id}
+                      onDelete={() => onDelete(item.id)}
+                      className={idx > 0 ? 'border-t border-stone-50' : ''}
+                    >
+                      {rowContent}
+                    </SwipeableRow>
+                  ) : (
+                    <div key={item.id}>{rowContent}</div>
+                  );
+                })}
+
+                {onAddItem && (
+                  <div className="border-t border-stone-100">
+                    {adding === category ? (
+                      <div className="flex items-center gap-2 px-4 py-2">
+                        <input
+                          autoFocus
+                          type="text"
+                          placeholder="Naam item..."
+                          value={addName}
+                          onChange={e => setAddName(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') submitAdd(category);
+                            if (e.key === 'Escape') { setAdding(null); setAddName(''); }
+                          }}
+                          className="flex-1 min-w-0 border border-stone-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                        />
+                        <button
+                          onClick={() => submitAdd(category)}
+                          disabled={!addName.trim()}
+                          className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-xl font-medium disabled:opacity-40"
+                        >
+                          Voeg toe
+                        </button>
+                        <button
+                          onClick={() => { setAdding(null); setAddName(''); }}
+                          className="text-xs text-stone-400 px-2 py-1.5"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => { setAdding(category); setAddName(''); }}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-xs text-stone-400 hover:text-green-600 hover:bg-stone-50 transition-colors"
+                      >
+                        <span className="text-base leading-none">＋</span> Item toevoegen
+                      </button>
                     )}
-                  </button>
-                ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
