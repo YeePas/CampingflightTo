@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { useCampingStore } from '@/hooks/useStorage';
+import { useAuth } from '@/hooks/useAuth';
 import TripConfigurator from '@/components/TripConfigurator';
 import PackingList from '@/components/PackingList';
 import TipsView from '@/components/TipsView';
@@ -9,6 +10,7 @@ import BeheerView from '@/components/BeheerView';
 import GroceryList from '@/components/GroceryList';
 import TripsView from '@/components/TripsView';
 import UndoToast from '@/components/UndoToast';
+import LoginScreen from '@/components/LoginScreen';
 import { PackItem, Tip } from '@/lib/types';
 
 type Tab = 'paklijst' | 'tips' | 'trips' | 'beheer';
@@ -59,11 +61,30 @@ function useUndoToast() {
   return { undo, arm, dismiss, trigger };
 }
 
+const USER_DISPLAY: Record<string, { name: string; emoji: string }> = {
+  joep:  { name: 'Joep',  emoji: '🧔' },
+  sanne: { name: 'Sanne', emoji: '👩' },
+};
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>('paklijst');
   const [pakSub, setPakSub] = useState<PakSub>('spullen');
   const s = useCampingStore();
   const { undo, arm, dismiss, trigger } = useUndoToast();
+  const auth = useAuth();
+
+  // Wait for localStorage to be read
+  if (!auth.mounted) {
+    return (
+      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
+        <div className="text-stone-400">⛺ laden...</div>
+      </div>
+    );
+  }
+
+  if (!auth.user) {
+    return <LoginScreen onLogin={auth.login} />;
+  }
 
   if (!s.mounted) {
     return (
@@ -72,6 +93,8 @@ export default function Home() {
       </div>
     );
   }
+
+  const currentUser = USER_DISPLAY[auth.user];
 
   const checkedCount = s.filteredItems.filter(i => s.checked[i.id]).length;
 
@@ -121,15 +144,25 @@ export default function Home() {
                 A Campingflight To…
               </h1>
             </div>
-            <button
-              onClick={() => s.refresh()}
-              disabled={s.syncing}
-              className="flex items-center gap-1.5 text-xs bg-white/15 hover:bg-white/25 backdrop-blur px-3 py-1.5 rounded-full transition-all disabled:opacity-50"
-              title={s.lastSync ? `Laatst gesynced: ${timeAgo(s.lastSync)}` : 'Nog niet gesynced'}
-            >
-              <span className={s.syncing ? 'animate-spin inline-block' : 'inline-block'}>↻</span>
-              <span className="hidden sm:inline">{s.syncing ? 'syncen…' : timeAgo(s.lastSync) || 'sync'}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => s.refresh()}
+                disabled={s.syncing}
+                className="flex items-center gap-1.5 text-xs bg-white/15 hover:bg-white/25 backdrop-blur px-3 py-1.5 rounded-full transition-all disabled:opacity-50"
+                title={s.lastSync ? `Laatst gesynced: ${timeAgo(s.lastSync)}` : 'Nog niet gesynced'}
+              >
+                <span className={s.syncing ? 'animate-spin inline-block' : 'inline-block'}>↻</span>
+                <span className="hidden sm:inline">{s.syncing ? 'syncen…' : timeAgo(s.lastSync) || 'sync'}</span>
+              </button>
+              <button
+                onClick={auth.logout}
+                className="flex items-center gap-1.5 text-xs bg-white/15 hover:bg-white/25 backdrop-blur px-3 py-1.5 rounded-full transition-all"
+                title="Uitloggen"
+              >
+                <span>{currentUser.emoji}</span>
+                <span>{currentUser.name}</span>
+              </button>
+            </div>
           </div>
           <p className="text-xs text-white/70 mt-0.5 italic">Onderweg, paraat, gepakt.</p>
         </div>
