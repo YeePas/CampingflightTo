@@ -116,7 +116,7 @@ export default function PackingList({ items, checked, onToggle, tripType, onDele
                   const rowContent = (
                     <button
                       onClick={() => onToggle(item.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-stone-50 ${
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors bg-white hover:bg-stone-50 ${
                         !onDelete && idx > 0 ? 'border-t border-stone-50' : ''
                       }`}
                     >
