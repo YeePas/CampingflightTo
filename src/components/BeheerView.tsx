@@ -4,6 +4,7 @@ import { PackItem, CATEGORIES, TripType } from '@/lib/types';
 import { useState } from 'react';
 import SwipeableRow from './SwipeableRow';
 import { PencilIcon } from './Icons';
+import VoiceInput, { VoiceResult } from './VoiceInput';
 
 interface Props {
   items: PackItem[];
@@ -50,6 +51,24 @@ export default function BeheerView({ items, onAdd, onDelete, onEdit }: Props) {
     }));
   };
 
+  const handleVoiceResult = (data: VoiceResult) => {
+    setForm(prev => ({
+      ...prev,
+      name: (data.name as string) || prev.name,
+      category: (CATEGORIES as readonly string[]).includes(data.category as string)
+        ? (data.category as string)
+        : prev.category,
+      tripTypes: Array.isArray(data.tripTypes) && data.tripTypes.length > 0
+        ? (data.tripTypes as TripType[])
+        : prev.tripTypes,
+      mountains: typeof data.mountains === 'boolean' ? data.mountains : prev.mountains,
+      kids: typeof data.kids === 'boolean' ? data.kids : prev.kids,
+      quantity: (data.quantity as string) || prev.quantity,
+      notes: (data.notes as string) || prev.notes,
+    }));
+    if (!showForm) setShowForm(true);
+  };
+
   const handleSubmit = () => {
     if (!form.name.trim() || form.tripTypes.length === 0) return;
     const data = { ...form, tripTypes: form.tripTypes };
@@ -82,12 +101,17 @@ export default function BeheerView({ items, onAdd, onDelete, onEdit }: Props) {
     <div>
       {/* Add button */}
       {!showForm && (
-        <button
-          onClick={() => { setShowForm(true); setEditingItem(null); setForm(EMPTY_FORM); }}
-          className="w-full py-3 mb-4 rounded-2xl bg-green-600 text-white font-medium hover:bg-green-700 transition-colors"
-        >
-          + Nieuw item toevoegen
-        </button>
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => { setShowForm(true); setEditingItem(null); setForm(EMPTY_FORM); }}
+            className="flex-1 py-3 rounded-2xl bg-green-600 text-white font-medium hover:bg-green-700 transition-colors"
+          >
+            + Nieuw item
+          </button>
+          <div className="flex items-center bg-white border border-stone-200 rounded-2xl px-3">
+            <VoiceInput mode="item" onResult={(d) => { setEditingItem(null); setForm(EMPTY_FORM); handleVoiceResult(d); }} label="Inspreek" />
+          </div>
+        </div>
       )}
 
       {/* Form */}
@@ -95,13 +119,16 @@ export default function BeheerView({ items, onAdd, onDelete, onEdit }: Props) {
         <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-4 space-y-3 mb-4">
           <h3 className="font-semibold text-stone-700">{editingItem ? 'Item bewerken' : 'Nieuw item'}</h3>
 
-          <input
-            type="text"
-            placeholder="Naam (bijv. Wandelschoenen)"
-            value={form.name}
-            onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-            className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
-          />
+          <div className="flex gap-2 items-center">
+            <input
+              type="text"
+              placeholder="Naam (bijv. Wandelschoenen)"
+              value={form.name}
+              onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+              className="flex-1 min-w-0 border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+            />
+            <VoiceInput mode="item" onResult={handleVoiceResult} />
+          </div>
 
           <select
             value={form.category}
