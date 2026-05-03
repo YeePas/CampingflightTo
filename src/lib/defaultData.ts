@@ -12,6 +12,10 @@ export const DEFAULT_ITEMS: PackItem[] = [
   { id: 'c8', name: 'Pet / zonnehoed', category: 'Kleding', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
   { id: 'c9', name: 'Handschoenen', category: 'Kleding', tripTypes: ['weekend', 'week'], mountains: true, kids: false },
   { id: 'c10', name: 'Muts', category: 'Kleding', tripTypes: ['weekend', 'week'], mountains: true, kids: false },
+  { id: 'c11', name: 'T-shirts / bovenkledij', category: 'Kleding', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
+  { id: 'c12', name: 'Onderkleding & sokken', category: 'Kleding', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
+  { id: 'c13', name: 'Nachtkleding / pyama', category: 'Kleding', tripTypes: ['weekend', 'week'], mountains: false, kids: false },
+  { id: 'c14', name: 'Slippers / badslippers', category: 'Kleding', tripTypes: ['weekend', 'week'], mountains: false, kids: false },
 
   // Slaap
   { id: 's1', name: 'Tent', category: 'Slaap', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
@@ -36,6 +40,11 @@ export const DEFAULT_ITEMS: PackItem[] = [
   { id: 'k12', name: 'Kindersnacks extra', category: 'Keuken & Eten', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: true },
   { id: 'k13', name: 'Koffie / thee', category: 'Keuken & Eten', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
   { id: 'k14', name: 'Vuilniszakken', category: 'Keuken & Eten', tripTypes: ['weekend', 'week'], mountains: false, kids: false },
+  { id: 'k15', name: 'Keukenmes', category: 'Keuken & Eten', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
+  { id: 'k16', name: 'Snijplank', category: 'Keuken & Eten', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
+  { id: 'k17', name: 'Scheplepel / spatel', category: 'Keuken & Eten', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
+  { id: 'k18', name: 'Blikopener', category: 'Keuken & Eten', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
+  { id: 'k19', name: 'Keukenrol', category: 'Keuken & Eten', tripTypes: ['weekend', 'week'], mountains: false, kids: false },
 
   // Hygiëne
   { id: 'h1', name: 'Tandenborstel & tandpasta', category: 'Hygiëne', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
@@ -46,6 +55,9 @@ export const DEFAULT_ITEMS: PackItem[] = [
   { id: 'h6', name: 'Insectenwerend middel', category: 'Hygiëne', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
   { id: 'h7', name: 'Nat doekjes', category: 'Hygiëne', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
   { id: 'h8', name: 'Luiers / zindelijkheidsspullen', category: 'Hygiëne', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: true },
+  { id: 'h9', name: 'Shampoo & conditioner', category: 'Hygiëne', tripTypes: ['weekend', 'week'], mountains: false, kids: false },
+  { id: 'h10', name: 'Deodorant', category: 'Hygiëne', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
+  { id: 'h11', name: 'Scheerartikelen', category: 'Hygiëne', tripTypes: ['weekend', 'week'], mountains: false, kids: false },
 
   // Kinderen
   { id: 'ki1', name: 'Kinderzonnebrandcrème (hoge factor)', category: 'Kinderen', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: true },
@@ -79,6 +91,10 @@ export const DEFAULT_ITEMS: PackItem[] = [
   { id: 'g5', name: 'Powerbank', category: 'Gereedschap', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
   { id: 'g6', name: 'Klim-/wandelstokken', category: 'Gereedschap', tripTypes: ['dag', 'weekend', 'week'], mountains: true, kids: false },
   { id: 'g7', name: 'Pikhouweel / ijsbijl', category: 'Bergen', tripTypes: ['weekend', 'week'], mountains: true, kids: false },
+  { id: 'g8', name: 'Campingstoel', category: 'Gereedschap', tripTypes: ['weekend', 'week'], mountains: false, kids: false },
+  { id: 'g9', name: 'Campingtafel', category: 'Gereedschap', tripTypes: ['weekend', 'week'], mountains: false, kids: false },
+  { id: 'g10', name: 'Tentlamp / lantaarn', category: 'Gereedschap', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
+  { id: 'g11', name: 'Verlengkabel / stekkerdoos', category: 'Gereedschap', tripTypes: ['weekend', 'week'], mountains: false, kids: false },
 
   // Overig
   { id: 'o1', name: 'Identiteitsbewijs / paspoort', category: 'Overig', tripTypes: ['week'], mountains: false, kids: false },

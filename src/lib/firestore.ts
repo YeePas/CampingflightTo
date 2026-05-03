@@ -17,26 +17,40 @@ const REF = {
 
 // --- Items ---
 
-export async function fetchItems(): Promise<PackItem[]> {
-  const snap = await getDoc(REF.items());
-  if (!snap.exists()) {
-    await setDoc(REF.items(), { items: DEFAULT_ITEMS });
-    return DEFAULT_ITEMS;
-  }
-  // Merge any new defaults that aren't yet in the user's list (by id)
-  const existing = snap.data().items as PackItem[];
-  const existingIds = new Set(existing.map(i => i.id));
-  const missing = DEFAULT_ITEMS.filter(i => !existingIds.has(i.id));
-  if (missing.length > 0) {
-    const merged = [...existing, ...missing];
-    await setDoc(REF.items(), { items: merged });
-    return merged;
-  }
-  return existing;
+export interface ItemsDoc {
+  items: PackItem[];
+  /** IDs of default items the user deliberately deleted — never auto-merged back */
+  deletedDefaultIds: string[];
 }
 
-export async function saveItems(items: PackItem[]): Promise<void> {
-  await setDoc(REF.items(), { items });
+export async function fetchItems(): Promise<ItemsDoc> {
+  const snap = await getDoc(REF.items());
+
+  if (!snap.exists()) {
+    const doc: ItemsDoc = { items: DEFAULT_ITEMS, deletedDefaultIds: [] };
+    await setDoc(REF.items(), doc);
+    return doc;
+  }
+
+  const existing = snap.data().items as PackItem[];
+  const deletedDefaultIds: string[] = snap.data().deletedDefaultIds ?? [];
+  const deletedSet = new Set(deletedDefaultIds);
+
+  // Merge new defaults that are not yet in the list AND not deliberately deleted
+  const existingIds = new Set(existing.map(i => i.id));
+  const missing = DEFAULT_ITEMS.filter(i => !existingIds.has(i.id) && !deletedSet.has(i.id));
+
+  if (missing.length > 0) {
+    const merged = [...existing, ...missing];
+    await setDoc(REF.items(), { items: merged, deletedDefaultIds });
+    return { items: merged, deletedDefaultIds };
+  }
+
+  return { items: existing, deletedDefaultIds };
+}
+
+export async function saveItems(items: PackItem[], deletedDefaultIds: string[]): Promise<void> {
+  await setDoc(REF.items(), { items, deletedDefaultIds });
 }
 
 export function subscribeItems(cb: (items: PackItem[]) => void): () => void {
