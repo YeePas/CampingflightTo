@@ -18,17 +18,17 @@ export const DEFAULT_ITEMS: PackItem[] = [
   { id: 'c14', name: 'Slippers / badslippers', category: 'Kleding', tripTypes: ['weekend', 'week', 'wandeltrip'], mountains: false, kids: false },
 
   // Slaap
-  { id: 's1', name: 'Tent', category: 'Slaap', tripTypes: ['dag', 'weekend', 'week', 'wandeltrip'], mountains: false, kids: false },
-  { id: 's2', name: 'Slaapzak', category: 'Slaap', tripTypes: ['dag', 'weekend', 'week', 'wandeltrip'], mountains: false, kids: false },
-  { id: 's3', name: 'Slaapmat / luchtbed', category: 'Slaap', tripTypes: ['dag', 'weekend', 'week', 'wandeltrip'], mountains: false, kids: false },
-  { id: 's4', name: 'Kussen', category: 'Slaap', tripTypes: ['weekend', 'week', 'wandeltrip'], mountains: false, kids: false },
+  { id: 's1', name: 'Tent', category: 'Slaap', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
+  { id: 's2', name: 'Slaapzak', category: 'Slaap', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
+  { id: 's3', name: 'Slaapmat / luchtbed', category: 'Slaap', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
+  { id: 's4', name: 'Kussen', category: 'Slaap', tripTypes: ['weekend', 'week'], mountains: false, kids: false },
   { id: 's5', name: 'Oordopjes', category: 'Slaap', tripTypes: ['weekend', 'week', 'wandeltrip'], mountains: false, kids: false },
-  { id: 's6', name: 'Slaapzak kinderen', category: 'Slaap', tripTypes: ['dag', 'weekend', 'week', 'wandeltrip'], mountains: false, kids: true },
+  { id: 's6', name: 'Slaapzak kinderen', category: 'Slaap', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: true },
 
   // Keuken & Eten
-  { id: 'k1', name: 'Campingkooktoestel', category: 'Keuken & Eten', tripTypes: ['dag', 'weekend', 'week', 'wandeltrip'], mountains: false, kids: false },
-  { id: 'k2', name: 'Gaspatronen (extra)', category: 'Keuken & Eten', tripTypes: ['weekend', 'week', 'wandeltrip'], mountains: false, kids: false },
-  { id: 'k3', name: 'Pannen / kookset', category: 'Keuken & Eten', tripTypes: ['dag', 'weekend', 'week', 'wandeltrip'], mountains: false, kids: false },
+  { id: 'k1', name: 'Campingkooktoestel', category: 'Keuken & Eten', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
+  { id: 'k2', name: 'Gaspatronen (extra)', category: 'Keuken & Eten', tripTypes: ['weekend', 'week'], mountains: false, kids: false },
+  { id: 'k3', name: 'Pannen / kookset', category: 'Keuken & Eten', tripTypes: ['dag', 'weekend', 'week'], mountains: false, kids: false },
   { id: 'k4', name: 'Bestek & borden', category: 'Keuken & Eten', tripTypes: ['dag', 'weekend', 'week', 'wandeltrip'], mountains: false, kids: false },
   { id: 'k5', name: 'Mok / thermosbeker', category: 'Keuken & Eten', tripTypes: ['dag', 'weekend', 'week', 'wandeldag', 'wandeltrip'], mountains: false, kids: false },
   { id: 'k6', name: 'Waterfles (per persoon)', category: 'Keuken & Eten', tripTypes: ['dag', 'weekend', 'week', 'wandeldag', 'wandeltrip'], mountains: false, kids: false },
@@ -102,6 +102,10 @@ export const DEFAULT_ITEMS: PackItem[] = [
   { id: 'o3', name: 'Geld / creditcard', category: 'Overig', tripTypes: ['dag', 'weekend', 'week', 'wandeldag', 'wandeltrip'], mountains: false, kids: false },
   { id: 'o4', name: 'Telefoonoplader + adapter', category: 'Overig', tripTypes: ['dag', 'weekend', 'week', 'wandeltrip'], mountains: false, kids: false },
   { id: 'o5', name: 'Campinggids / reserveringsbevestiging', category: 'Overig', tripTypes: ['weekend', 'week'], mountains: false, kids: false },
+
+  // Berghut-specifiek
+  { id: 'w1', name: 'Lakenzak', category: 'Slaap', tripTypes: ['wandeltrip'], mountains: false, kids: false },
+  { id: 'w2', name: 'Berghutten reservering (bevestiging)', category: 'Overig', tripTypes: ['wandeltrip'], mountains: false, kids: false },
 ];
 
 export const DEFAULT_TIPS: Tip[] = [

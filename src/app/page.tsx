@@ -199,7 +199,7 @@ export default function Home() {
                   checkedCount={checkedCount}
                   totalCount={s.filteredItems.length}
                 />
-                <PackingList items={s.filteredItems} checked={s.checked} onToggle={s.toggleCheck} />
+                <PackingList items={s.filteredItems} checked={s.checked} onToggle={s.toggleCheck} tripType={s.tripConfig.type} />
               </>
             )}
 

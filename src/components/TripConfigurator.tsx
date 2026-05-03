@@ -45,7 +45,10 @@ export default function TripConfigurator({ config, onChange, onReset, checkedCou
             {row.map(t => (
               <button
                 key={t.value}
-                onClick={() => onChange({ ...config, type: t.value })}
+                onClick={() => {
+                  const isHike = t.value === 'wandeldag' || t.value === 'wandeltrip';
+                  onChange({ ...config, type: t.value, ...(isHike ? { mountains: false, kids: false } : {}) });
+                }}
                 className={`flex-1 py-2 px-1 rounded-xl text-sm font-medium transition-all ${
                   config.type === t.value
                     ? 'bg-green-600 text-white shadow-sm'
@@ -60,29 +63,31 @@ export default function TripConfigurator({ config, onChange, onReset, checkedCou
         ))}
       </div>
 
-      {/* Extra opties */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => { if (!isHikingMode) onChange({ ...config, mountains: !config.mountains }); }}
-          className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
-            config.mountains || isHikingMode
-              ? 'bg-blue-600 text-white shadow-sm'
-              : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-          } ${isHikingMode ? 'pointer-events-none opacity-80' : ''}`}
-        >
-          <span>⛰️</span> Bergen
-        </button>
-        <button
-          onClick={() => onChange({ ...config, kids: !config.kids })}
-          className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
-            config.kids
-              ? 'bg-orange-500 text-white shadow-sm'
-              : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-          }`}
-        >
-          <span>👧</span> Kinderen
-        </button>
-      </div>
+      {/* Extra opties — hidden in hiking mode */}
+      {!isHikingMode && (
+        <div className="flex gap-2">
+          <button
+            onClick={() => onChange({ ...config, mountains: !config.mountains })}
+            className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
+              config.mountains
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+            }`}
+          >
+            <span>⛰️</span> Bergen
+          </button>
+          <button
+            onClick={() => onChange({ ...config, kids: !config.kids })}
+            className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
+              config.kids
+                ? 'bg-orange-500 text-white shadow-sm'
+                : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+            }`}
+          >
+            <span>👧</span> Kinderen
+          </button>
+        </div>
+      )}
 
       {/* Progress */}
       {totalCount > 0 && (

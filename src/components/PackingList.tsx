@@ -1,12 +1,13 @@
 'use client';
 
-import { PackItem, CheckedItems, CATEGORIES } from '@/lib/types';
+import { PackItem, CheckedItems, CATEGORIES, TripType } from '@/lib/types';
 import { useState } from 'react';
 
 interface Props {
   items: PackItem[];
   checked: CheckedItems;
   onToggle: (id: string) => void;
+  tripType: TripType;
 }
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -22,7 +23,8 @@ const CATEGORY_EMOJI: Record<string, string> = {
   'Overig': '📦',
 };
 
-export default function PackingList({ items, checked, onToggle }: Props) {
+export default function PackingList({ items, checked, onToggle, tripType }: Props) {
+  const isHikingMode = tripType === 'wandeldag' || tripType === 'wandeltrip';
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
 
   const byCategory = CATEGORIES.reduce((acc, cat) => {
@@ -121,16 +123,18 @@ export default function PackingList({ items, checked, onToggle }: Props) {
                         <p className="text-xs text-stone-400 mt-0.5">{item.notes}</p>
                       )}
                     </div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      {!item.tripTypes.includes('dag') && item.tripTypes.includes('weekend') && (
-                        <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium">1+</span>
-                      )}
-                      {!item.tripTypes.includes('dag') && !item.tripTypes.includes('weekend') && item.tripTypes.includes('week') && (
-                        <span className="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded-full font-medium">7+</span>
-                      )}
-                      {item.mountains && <span className="text-xs">⛰️</span>}
-                      {item.kids && <span className="text-xs">👧</span>}
-                    </div>
+                    {!isHikingMode && (
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        {!item.tripTypes.includes('dag') && item.tripTypes.includes('weekend') && (
+                          <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium">1+</span>
+                        )}
+                        {!item.tripTypes.includes('dag') && !item.tripTypes.includes('weekend') && item.tripTypes.includes('week') && (
+                          <span className="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded-full font-medium">7+</span>
+                        )}
+                        {item.mountains && <span className="text-xs">⛰️</span>}
+                        {item.kids && <span className="text-xs">👧</span>}
+                      </div>
+                    )}
                   </button>
                 ))}
               </div>

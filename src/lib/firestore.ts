@@ -36,15 +36,17 @@ export async function fetchItems(): Promise<ItemsDoc> {
   const deletedDefaultIds: string[] = snap.data().deletedDefaultIds ?? [];
   const deletedSet = new Set(deletedDefaultIds);
 
-  // Migrate: add new tripTypes from defaults to existing items (never removes custom ones)
+  // Migrate: sync tripTypes exactly for default items (adds new types AND removes removed ones)
   let migrated = false;
   const migratedExisting = existing.map(item => {
     const def = DEFAULT_ITEMS.find(d => d.id === item.id);
-    if (!def) return item;
-    const newTypes = def.tripTypes.filter(t => !(item.tripTypes as string[]).includes(t));
-    if (newTypes.length === 0) return item;
+    if (!def) return item; // custom item — leave untouched
+    const currentTypes = item.tripTypes as string[];
+    const same = def.tripTypes.length === currentTypes.length &&
+                 def.tripTypes.every(t => currentTypes.includes(t));
+    if (same) return item;
     migrated = true;
-    return { ...item, tripTypes: [...item.tripTypes, ...newTypes] };
+    return { ...item, tripTypes: def.tripTypes };
   });
   const base = migrated ? migratedExisting : existing;
   const existingIds = new Set(base.map((i: PackItem) => i.id));
