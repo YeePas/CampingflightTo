@@ -11,9 +11,8 @@ interface Props {
 }
 
 const TRIP_TYPES: { value: TripType; label: string; emoji: string }[] = [
-  { value: 'dag', label: 'Dag', emoji: '☀️' },
-  { value: 'weekend', label: 'Dag+', emoji: '⛺' },
-  { value: 'week', label: 'Week+', emoji: '🗓️' },
+  { value: 'weekend', label: '+1 nacht', emoji: '⛺' },
+  { value: 'week', label: '+7 nachten', emoji: '🗓️' },
 ];
 
 export default function TripConfigurator({ config, onChange, onReset, checkedCount, totalCount }: Props) {

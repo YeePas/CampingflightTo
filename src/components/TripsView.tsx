@@ -23,15 +23,15 @@ const SUB_TABS: { id: SubTab; label: string; emoji: string }[] = [
 ];
 
 const TRIP_EMOJI: Record<TripConfig['type'], string> = {
-  dag: '☀️',
+  dag: '⛺',
   weekend: '⛺',
   week: '🗓️',
 };
 
 const TRIP_NAME: Record<TripConfig['type'], string> = {
-  dag: 'Dag',
-  weekend: 'Dag+',
-  week: 'Week+',
+  dag: '+1 nacht',
+  weekend: '+1 nacht',
+  week: '+7 nachten',
 };
 
 const tripLabel = (c: TripConfig) => {

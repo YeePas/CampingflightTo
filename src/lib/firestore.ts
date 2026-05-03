@@ -92,7 +92,15 @@ export function subscribeTips(cb: (tips: Tip[]) => void): () => void {
 
 export async function fetchState(): Promise<{ checked: CheckedItems; tripConfig: TripConfig }> {
   const snap = await getDoc(REF.state());
-  if (snap.exists()) return snap.data() as { checked: CheckedItems; tripConfig: TripConfig };
+  if (snap.exists()) {
+    const data = snap.data() as { checked: CheckedItems; tripConfig: TripConfig };
+    // Migrate 'dag' to 'weekend' — dag is no longer a selectable trip type
+    if (data.tripConfig?.type === 'dag') {
+      data.tripConfig = { ...data.tripConfig, type: 'weekend' };
+      await setDoc(REF.state(), data, { merge: true });
+    }
+    return data;
+  }
   const defaults = { checked: {}, tripConfig: { type: 'weekend' as const, mountains: false, kids: false } };
   await setDoc(REF.state(), defaults);
   return defaults;
