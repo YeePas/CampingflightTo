@@ -6,12 +6,11 @@ interface Props {
   onDelete: () => void;
   children: ReactNode;
   className?: string;
-  /** distance to swipe before delete is "armed" */
   threshold?: number;
 }
 
-const REVEAL = 80; // px width of delete reveal area
-const COMMIT = 140; // swipe past this and lift = delete instantly
+const REVEAL = 76;
+const COMMIT = 140;
 
 export default function SwipeableRow({ onDelete, children, className = '', threshold = 40 }: Props) {
   const [offset, setOffset] = useState(0);
@@ -36,7 +35,6 @@ export default function SwipeableRow({ onDelete, children, className = '', thres
     startXRef.current = null;
 
     if (offset <= -COMMIT) {
-      // Swiped far enough to delete instantly
       setOffset(-400);
       setTimeout(onDelete, 150);
       return;
@@ -55,17 +53,26 @@ export default function SwipeableRow({ onDelete, children, className = '', thres
     setRevealed(false);
   };
 
+  const handleDelete = () => {
+    setOffset(-400);
+    setTimeout(onDelete, 180);
+  };
+
   return (
     <div className={`relative overflow-hidden ${className}`}>
-      {/* Delete button revealed behind */}
-      <button
-        onClick={onDelete}
-        aria-label="Verwijder"
-        className="absolute inset-y-0 right-0 flex items-center justify-center bg-red-500 text-white font-medium text-sm"
+      {/* Delete action area — plain background, centered circle button */}
+      <div
+        className="absolute inset-y-0 right-0 flex items-center justify-center"
         style={{ width: REVEAL }}
       >
-        🗑️
-      </button>
+        <button
+          onClick={handleDelete}
+          aria-label="Verwijder"
+          className="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center shadow-sm active:bg-red-600 transition-colors"
+        >
+          <TrashIcon />
+        </button>
+      </div>
 
       {/* Foreground content */}
       <div
@@ -82,5 +89,16 @@ export default function SwipeableRow({ onDelete, children, className = '', thres
         {children}
       </div>
     </div>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6M14 11v6" />
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+    </svg>
   );
 }
