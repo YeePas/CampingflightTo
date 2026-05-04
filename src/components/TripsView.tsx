@@ -285,7 +285,7 @@ function LocationsList({ locations, setLocations, onUndo }: Props) {
   );
 }
 
-const EMPTY_WISH = { name: '', address: '', notes: '' };
+const EMPTY_WISH = { name: '', address: '', tipFrom: '', notes: '' };
 
 function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }: Props) {
   const [showForm, setShowForm] = useState(false);
@@ -298,7 +298,13 @@ function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }
       const editId = editing.id;
       setWishlist(prev => prev.map(w =>
         w.id === editId
-          ? { id: editId, name: form.name.trim(), ...(form.address ? { address: form.address } : {}), ...(form.notes ? { notes: form.notes } : {}) }
+          ? {
+              id: editId,
+              name: form.name.trim(),
+              ...(form.address ? { address: form.address } : {}),
+              ...(form.tipFrom ? { tipFrom: form.tipFrom } : {}),
+              ...(form.notes ? { notes: form.notes } : {}),
+            }
           : w
       ));
     } else {
@@ -306,6 +312,7 @@ function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }
         id: `w_${Date.now()}`,
         name: form.name.trim(),
         ...(form.address ? { address: form.address } : {}),
+        ...(form.tipFrom ? { tipFrom: form.tipFrom } : {}),
         ...(form.notes ? { notes: form.notes } : {}),
       };
       setWishlist(prev => [...prev, newItem]);
@@ -317,7 +324,7 @@ function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }
 
   const startEdit = (w: WishlistItem) => {
     setEditing(w);
-    setForm({ name: w.name, address: w.address ?? '', notes: w.notes ?? '' });
+    setForm({ name: w.name, address: w.address ?? '', tipFrom: w.tipFrom ?? '', notes: w.notes ?? '' });
     setShowForm(true);
   };
 
@@ -366,6 +373,13 @@ function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }
             onChange={e => setForm(prev => ({ ...prev, address: e.target.value }))}
             className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
           />
+          <input
+            type="text"
+            placeholder="Tip gekregen van (optioneel)"
+            value={form.tipFrom}
+            onChange={e => setForm(prev => ({ ...prev, tipFrom: e.target.value }))}
+            className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
           <textarea
             placeholder="Notities (waarom, link, tips...)"
             value={form.notes}
@@ -402,7 +416,10 @@ function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }
                 {w.address && (
                   <div className="text-xs text-stone-400 truncate">{w.address}</div>
                 )}
-                {!w.address && w.notes && (
+                {w.tipFrom && (
+                  <div className="text-xs text-stone-400 truncate">💬 {w.tipFrom}</div>
+                )}
+                {!w.address && !w.tipFrom && w.notes && (
                   <div className="text-xs text-stone-400 truncate">{w.notes}</div>
                 )}
               </div>

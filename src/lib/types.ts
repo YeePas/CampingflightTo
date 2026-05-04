@@ -75,6 +75,7 @@ export interface WishlistItem {
   name: string;
   notes?: string;
   address?: string;
+  tipFrom?: string;
 }
 
 export const GROCERY_CATEGORIES = [
