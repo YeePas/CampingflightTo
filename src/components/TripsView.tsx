@@ -5,11 +5,13 @@ import { CampingLocation, WishlistItem, ChecklistItem } from '@/lib/types';
 import SwipeableRow from './SwipeableRow';
 import { PencilIcon } from './Icons';
 
+type Updater<T> = T | ((prev: T) => T);
+
 interface Props {
   locations: CampingLocation[];
-  setLocations: (l: CampingLocation[]) => void;
+  setLocations: (updater: Updater<CampingLocation[]>) => void;
   wishlist: WishlistItem[];
-  setWishlist: (w: WishlistItem[]) => void;
+  setWishlist: (updater: Updater<WishlistItem[]>) => void;
   onUndo?: (label: string, restore: () => void) => void;
 }
 
@@ -72,9 +74,12 @@ function LocationsList({ locations, setLocations, onUndo }: Props) {
       notes: form.notes || undefined,
     };
     if (editing) {
-      setLocations(locations.map(l => l.id === editing.id ? { ...editing, ...data } : l));
+      const editId = editing.id;
+      const editSnap = editing;
+      setLocations(prev => prev.map(l => l.id === editId ? { ...editSnap, ...data } : l));
     } else {
-      setLocations([...locations, { id: `l_${Date.now()}`, ...data }]);
+      const newId = `l_${Date.now()}`;
+      setLocations(prev => [...prev, { id: newId, ...data }]);
     }
     setForm(EMPTY_LOC);
     setShowForm(false);
@@ -91,14 +96,14 @@ function LocationsList({ locations, setLocations, onUndo }: Props) {
   };
 
   const remove = (id: string) => {
-    const snapshot = locations;
-    const deleted = snapshot.find(l => l.id === id);
-    setLocations(locations.filter(l => l.id !== id));
+    const deleted = locations.find(l => l.id === id);
+    const snapshot = [...locations];
+    setLocations(prev => prev.filter(l => l.id !== id));
     onUndo?.(`"${deleted?.name ?? 'Camping'}" verwijderd`, () => setLocations(snapshot));
   };
 
   const toggleChecklistItem = (locId: string, itemId: string) => {
-    setLocations(locations.map(l => {
+    setLocations(prev => prev.map(l => {
       if (l.id !== locId) return l;
       const checklist = (l.checklist ?? []).map(c =>
         c.id === itemId ? { ...c, done: !c.done } : c
@@ -109,19 +114,16 @@ function LocationsList({ locations, setLocations, onUndo }: Props) {
 
   const addChecklistItem = (locId: string, text: string) => {
     if (!text.trim()) return;
-    setLocations(locations.map(l => {
+    const newItem: ChecklistItem = { id: `c_${Date.now()}`, text: text.trim(), done: false };
+    setLocations(prev => prev.map(l => {
       if (l.id !== locId) return l;
-      const checklist: ChecklistItem[] = [
-        ...(l.checklist ?? []),
-        { id: `c_${Date.now()}`, text: text.trim(), done: false },
-      ];
-      return { ...l, checklist };
+      return { ...l, checklist: [...(l.checklist ?? []), newItem] };
     }));
     setNewChecklistText(prev => ({ ...prev, [locId]: '' }));
   };
 
   const removeChecklistItem = (locId: string, itemId: string) => {
-    setLocations(locations.map(l => {
+    setLocations(prev => prev.map(l => {
       if (l.id !== locId) return l;
       return { ...l, checklist: (l.checklist ?? []).filter(c => c.id !== itemId) };
     }));
@@ -281,37 +283,34 @@ function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }
 
   const submit = () => {
     if (!form.name.trim()) return;
-    setWishlist([
-      ...wishlist,
-      {
-        id: `w_${Date.now()}`,
-        name: form.name.trim(),
-        address: form.address || undefined,
-        notes: form.notes || undefined,
-      },
-    ]);
+    const newItem: WishlistItem = {
+      id: `w_${Date.now()}`,
+      name: form.name.trim(),
+      address: form.address || undefined,
+      notes: form.notes || undefined,
+    };
+    setWishlist(prev => [...prev, newItem]);
     setForm(EMPTY_WISH);
     setShowForm(false);
   };
 
   const remove = (id: string) => {
-    const snapshot = wishlist;
-    const deleted = snapshot.find(w => w.id === id);
-    setWishlist(wishlist.filter(w => w.id !== id));
+    const deleted = wishlist.find(w => w.id === id);
+    const snapshot = [...wishlist];
+    setWishlist(prev => prev.filter(w => w.id !== id));
     onUndo?.(`"${deleted?.name ?? 'Wishlist'}" verwijderd`, () => setWishlist(snapshot));
   };
 
   const promote = (w: WishlistItem) => {
-    setLocations([
-      ...locations,
-      {
-        id: `l_${Date.now()}`,
-        name: w.name,
-        address: w.address,
-        notes: w.notes,
-      },
-    ]);
-    setWishlist(wishlist.filter(x => x.id !== w.id));
+    const newLoc: CampingLocation = {
+      id: `l_${Date.now()}`,
+      name: w.name,
+      address: w.address,
+      notes: w.notes,
+    };
+    const wId = w.id;
+    setLocations(prev => [...prev, newLoc]);
+    setWishlist(prev => prev.filter(x => x.id !== wId));
   };
 
   return (

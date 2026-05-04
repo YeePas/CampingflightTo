@@ -26,6 +26,10 @@ export function useCampingStore() {
   const [locations, setLocationsState] = useState<CampingLocation[]>([]);
   const [wishlist, setWishlistState] = useState<WishlistItem[]>([]);
 
+  // Always-current refs so functional updaters in setLocations/setWishlist read fresh state
+  const locationsRef = useRef<CampingLocation[]>([]);
+  const wishlistRef = useRef<WishlistItem[]>([]);
+
   const [mounted, setMounted] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<Date | null>(null);
@@ -48,8 +52,8 @@ export function useCampingStore() {
       setCheckedState(s.checked);
       setTripConfigState(s.tripConfig);
       setGroceriesState(g);
-      setLocationsState(l);
-      setWishlistState(w);
+      locationsRef.current = l; setLocationsState(l);
+      wishlistRef.current = w; setWishlistState(w);
       setLastSync(new Date());
     } finally {
       setSyncing(false);
@@ -68,8 +72,8 @@ export function useCampingStore() {
         setLastSync(new Date());
       }),
       subscribeGroceries(g => { setGroceriesState(g); setLastSync(new Date()); }),
-      subscribeLocations(l => { setLocationsState(l); setLastSync(new Date()); }),
-      subscribeWishlist(w => { setWishlistState(w); setLastSync(new Date()); }),
+      subscribeLocations(l => { locationsRef.current = l; setLocationsState(l); setLastSync(new Date()); }),
+      subscribeWishlist(w => { wishlistRef.current = w; setWishlistState(w); setLastSync(new Date()); }),
     ];
 
     const onVisible = () => {
@@ -112,8 +116,26 @@ export function useCampingStore() {
   const setTips = useCallback(wrapSet<Tip[]>(setTipsState, saveTips), []);
   const setTripConfig = useCallback(wrapSet<TripConfig>(setTripConfigState, saveTripConfig), []);
   const setGroceries = useCallback(wrapSet<GroceryItem[]>(setGroceriesState, saveGroceries), []);
-  const setLocations = useCallback(wrapSet<CampingLocation[]>(setLocationsState, saveLocations), []);
-  const setWishlist = useCallback(wrapSet<WishlistItem[]>(setWishlistState, saveWishlist), []);
+
+  // setLocations / setWishlist support both plain arrays and functional updaters so that
+  // closures (e.g. undo callbacks, checklist toggles) never operate on stale snapshot data.
+  type Updater<T> = T | ((prev: T) => T);
+
+  const setLocations = useCallback(async (updater: Updater<CampingLocation[]>) => {
+    const next = typeof updater === 'function' ? updater(locationsRef.current) : updater;
+    locationsRef.current = next;
+    setLocationsState(next);
+    setSyncing(true);
+    try { await saveLocations(next); setLastSync(new Date()); } finally { setSyncing(false); }
+  }, []);
+
+  const setWishlist = useCallback(async (updater: Updater<WishlistItem[]>) => {
+    const next = typeof updater === 'function' ? updater(wishlistRef.current) : updater;
+    wishlistRef.current = next;
+    setWishlistState(next);
+    setSyncing(true);
+    try { await saveWishlist(next); setLastSync(new Date()); } finally { setSyncing(false); }
+  }, []);
 
   const toggleCheck = useCallback((id: string) => {
     setCheckedState(prev => {

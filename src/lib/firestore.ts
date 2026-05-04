@@ -141,9 +141,8 @@ export function subscribeState(cb: (checked: CheckedItems, tripConfig: TripConfi
 
 async function fetchList<T>(ref: ReturnType<typeof REF.groceries>, key: string, fallback: T[] = []): Promise<T[]> {
   const snap = await getDoc(ref);
-  if (snap.exists()) return (snap.data()[key] ?? fallback) as T[];
-  await setDoc(ref, { [key]: fallback });
-  return fallback;
+  if (!snap.exists()) return fallback; // Don't create doc on fetch — it's created on first save
+  return (snap.data()[key] ?? fallback) as T[];
 }
 
 function subscribeList<T>(ref: ReturnType<typeof REF.groceries>, key: string, cb: (list: T[]) => void) {
