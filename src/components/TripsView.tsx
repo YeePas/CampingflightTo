@@ -267,8 +267,11 @@ function LocationsList({ locations, setLocations, onUndo }: Props) {
                     </div>
 
                     <div className="flex gap-3 pt-2 border-t border-stone-100 mt-2">
-                      <button onClick={() => startEdit(l)} className="text-xs text-stone-500 flex items-center gap-1">
+                      <button onClick={() => startEdit(l)} className="text-xs text-stone-500 hover:text-stone-700 flex items-center gap-1">
                         <PencilIcon className="w-3.5 h-3.5" /> Bewerken
+                      </button>
+                      <button onClick={() => remove(l.id)} className="text-xs text-red-400 hover:text-red-600 font-medium">
+                        🗑️ Verwijderen
                       </button>
                     </div>
                   </div>
@@ -286,19 +289,36 @@ const EMPTY_WISH = { name: '', address: '', notes: '' };
 
 function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }: Props) {
   const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<WishlistItem | null>(null);
   const [form, setForm] = useState(EMPTY_WISH);
 
   const submit = () => {
     if (!form.name.trim()) return;
-    const newItem: WishlistItem = {
-      id: `w_${Date.now()}`,
-      name: form.name.trim(),
-      address: form.address || undefined,
-      notes: form.notes || undefined,
-    };
-    setWishlist(prev => [...prev, newItem]);
+    if (editing) {
+      const editId = editing.id;
+      setWishlist(prev => prev.map(w =>
+        w.id === editId
+          ? { id: editId, name: form.name.trim(), ...(form.address ? { address: form.address } : {}), ...(form.notes ? { notes: form.notes } : {}) }
+          : w
+      ));
+    } else {
+      const newItem: WishlistItem = {
+        id: `w_${Date.now()}`,
+        name: form.name.trim(),
+        address: form.address || undefined,
+        notes: form.notes || undefined,
+      };
+      setWishlist(prev => [...prev, newItem]);
+    }
     setForm(EMPTY_WISH);
     setShowForm(false);
+    setEditing(null);
+  };
+
+  const startEdit = (w: WishlistItem) => {
+    setEditing(w);
+    setForm({ name: w.name, address: w.address ?? '', notes: w.notes ?? '' });
+    setShowForm(true);
   };
 
   const remove = (id: string) => {
@@ -324,14 +344,14 @@ function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }
     <div>
       {!showForm ? (
         <button
-          onClick={() => { setShowForm(true); setForm(EMPTY_WISH); }}
+          onClick={() => { setShowForm(true); setEditing(null); setForm(EMPTY_WISH); }}
           className="w-full py-3 mb-4 rounded-2xl bg-green-600 text-white font-medium hover:bg-green-700"
         >
           + Plek toevoegen aan wishlist
         </button>
       ) : (
         <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-4 space-y-2 mb-4">
-          <h3 className="font-semibold text-stone-700 mb-1">Nieuwe wishlist-plek</h3>
+          <h3 className="font-semibold text-stone-700 mb-1">{editing ? 'Wishlist-plek bewerken' : 'Nieuwe wishlist-plek'}</h3>
           <input
             type="text"
             placeholder="Naam (verplicht)"
@@ -355,9 +375,9 @@ function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }
           />
           <div className="flex gap-2">
             <button onClick={submit} className="flex-1 bg-green-600 text-white py-2 rounded-xl text-sm font-medium hover:bg-green-700">
-              Toevoegen
+              {editing ? 'Opslaan' : 'Toevoegen'}
             </button>
-            <button onClick={() => setShowForm(false)} className="flex-1 bg-stone-100 text-stone-600 py-2 rounded-xl text-sm font-medium">
+            <button onClick={() => { setShowForm(false); setEditing(null); }} className="flex-1 bg-stone-100 text-stone-600 py-2 rounded-xl text-sm font-medium">
               Annuleren
             </button>
           </div>
@@ -386,6 +406,13 @@ function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }
                   <div className="text-xs text-stone-400 truncate">{w.notes}</div>
                 )}
               </div>
+              <button
+                onClick={() => startEdit(w)}
+                className="flex-shrink-0 text-stone-400 hover:text-stone-600 p-1"
+                aria-label="Bewerken"
+              >
+                <PencilIcon className="w-4 h-4" />
+              </button>
               <button
                 onClick={() => promote(w)}
                 className="flex-shrink-0 text-xs bg-green-600 text-white px-3 py-1.5 rounded-full font-medium hover:bg-green-700"
