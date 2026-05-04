@@ -155,12 +155,19 @@ export default function Home() {
       >
         <div className="max-w-lg mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => {
+                setActiveTab('paklijst');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+              className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+              aria-label="Naar paklijst"
+            >
               <LogoMark className="w-8 h-8 rounded-[8px] shadow-sm" />
               <h1 className="text-lg font-bold tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>
                 A Campingflight To…
               </h1>
-            </div>
+            </button>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => s.refresh()}
