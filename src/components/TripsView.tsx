@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { CampingLocation, WishlistItem, ChecklistItem } from '@/lib/types';
 import SwipeableRow from './SwipeableRow';
 import { PencilIcon } from './Icons';
+import MountainView from './MountainView';
 
 type Updater<T> = T | ((prev: T) => T);
 
@@ -15,10 +16,17 @@ interface Props {
   onUndo?: (label: string, restore: () => void) => void;
 }
 
-type SubTab = 'plekken' | 'wishlist';
+type SubTab = 'plekken' | 'wishlist' | 'bergtrip';
+
+const TABS: { value: SubTab; label: string }[] = [
+  { value: 'plekken',  label: 'Plekken'  },
+  { value: 'wishlist', label: 'Wishlist' },
+  { value: 'bergtrip', label: '⛰️ Berg'   },
+];
 
 export default function TripsView(props: Props) {
   const [sub, setSub] = useState<SubTab>('plekken');
+  const activeIndex = TABS.findIndex(t => t.value === sub);
 
   return (
     <div>
@@ -26,30 +34,26 @@ export default function TripsView(props: Props) {
         <div
           className="absolute top-1 bottom-1 bg-white rounded-lg shadow-sm transition-all duration-200 ease-out"
           style={{
-            left: sub === 'plekken' ? '0.25rem' : 'calc(50% + 0.25rem)',
-            width: 'calc(50% - 0.5rem)',
+            left:  `calc(${activeIndex * 33.333}% + 0.25rem)`,
+            width: 'calc(33.333% - 0.5rem)',
           }}
         />
-        <button
-          onClick={() => setSub('plekken')}
-          className={`relative flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-200 ${
-            sub === 'plekken' ? 'text-stone-800' : 'text-stone-500'
-          }`}
-        >
-          Plekken
-        </button>
-        <button
-          onClick={() => setSub('wishlist')}
-          className={`relative flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-200 ${
-            sub === 'wishlist' ? 'text-stone-800' : 'text-stone-500'
-          }`}
-        >
-          Wishlist
-        </button>
+        {TABS.map(t => (
+          <button
+            key={t.value}
+            onClick={() => setSub(t.value)}
+            className={`relative flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-200 ${
+              sub === t.value ? 'text-stone-800' : 'text-stone-500'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
       </div>
 
-      {sub === 'plekken' && <LocationsList {...props} />}
+      {sub === 'plekken'  && <LocationsList {...props} />}
       {sub === 'wishlist' && <WishlistList {...props} />}
+      {sub === 'bergtrip' && <MountainView />}
     </div>
   );
 }
