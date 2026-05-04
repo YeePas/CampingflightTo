@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   PackItem, Tip, CheckedItems, TripConfig,
-  GroceryItem, TripPreset, CampingLocation,
+  GroceryItem, CampingLocation, WishlistItem,
 } from '@/lib/types';
 import { DEFAULT_ITEMS } from '@/lib/defaultData';
 import {
@@ -11,8 +11,8 @@ import {
   subscribeTips, saveTips, fetchTips,
   subscribeState, saveChecked, saveTripConfig, fetchState,
   subscribeGroceries, saveGroceries, fetchGroceries,
-  subscribePresets, savePresets, fetchPresets,
   subscribeLocations, saveLocations, fetchLocations,
+  subscribeWishlist, saveWishlist, fetchWishlist,
 } from '@/lib/firestore';
 
 const DEFAULT_IDS = new Set(DEFAULT_ITEMS.map(i => i.id));
@@ -23,8 +23,8 @@ export function useCampingStore() {
   const [checked, setCheckedState] = useState<CheckedItems>({});
   const [tripConfig, setTripConfigState] = useState<TripConfig>({ type: 'weekend', mountains: false, kids: false });
   const [groceries, setGroceriesState] = useState<GroceryItem[]>([]);
-  const [presets, setPresetsState] = useState<TripPreset[]>([]);
   const [locations, setLocationsState] = useState<CampingLocation[]>([]);
+  const [wishlist, setWishlistState] = useState<WishlistItem[]>([]);
 
   const [mounted, setMounted] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -38,9 +38,9 @@ export function useCampingStore() {
   const refresh = useCallback(async () => {
     setSyncing(true);
     try {
-      const [itemsDoc, t, s, g, p, l] = await Promise.all([
+      const [itemsDoc, t, s, g, l, w] = await Promise.all([
         fetchItems(), fetchTips(), fetchState(),
-        fetchGroceries(), fetchPresets(), fetchLocations(),
+        fetchGroceries(), fetchLocations(), fetchWishlist(),
       ]);
       setItemsState(itemsDoc.items);
       deletedDefaultIdsRef.current = itemsDoc.deletedDefaultIds;
@@ -48,8 +48,8 @@ export function useCampingStore() {
       setCheckedState(s.checked);
       setTripConfigState(s.tripConfig);
       setGroceriesState(g);
-      setPresetsState(p);
       setLocationsState(l);
+      setWishlistState(w);
       setLastSync(new Date());
     } finally {
       setSyncing(false);
@@ -68,8 +68,8 @@ export function useCampingStore() {
         setLastSync(new Date());
       }),
       subscribeGroceries(g => { setGroceriesState(g); setLastSync(new Date()); }),
-      subscribePresets(p => { setPresetsState(p); setLastSync(new Date()); }),
       subscribeLocations(l => { setLocationsState(l); setLastSync(new Date()); }),
+      subscribeWishlist(w => { setWishlistState(w); setLastSync(new Date()); }),
     ];
 
     const onVisible = () => {
@@ -112,8 +112,8 @@ export function useCampingStore() {
   const setTips = useCallback(wrapSet<Tip[]>(setTipsState, saveTips), []);
   const setTripConfig = useCallback(wrapSet<TripConfig>(setTripConfigState, saveTripConfig), []);
   const setGroceries = useCallback(wrapSet<GroceryItem[]>(setGroceriesState, saveGroceries), []);
-  const setPresets = useCallback(wrapSet<TripPreset[]>(setPresetsState, savePresets), []);
   const setLocations = useCallback(wrapSet<CampingLocation[]>(setLocationsState, saveLocations), []);
+  const setWishlist = useCallback(wrapSet<WishlistItem[]>(setWishlistState, saveWishlist), []);
 
   const toggleCheck = useCallback((id: string) => {
     setCheckedState(prev => {
@@ -144,7 +144,7 @@ export function useCampingStore() {
     toggleCheck, resetChecked,
     filteredItems, mounted, syncing, lastSync, refresh,
     groceries, setGroceries,
-    presets, setPresets,
     locations, setLocations,
+    wishlist, setWishlist,
   };
 }

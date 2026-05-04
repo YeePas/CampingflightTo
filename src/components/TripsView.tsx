@@ -1,166 +1,53 @@
 'use client';
 
 import { useState } from 'react';
-import { TripPreset, CampingLocation, TripConfig } from '@/lib/types';
+import { CampingLocation, WishlistItem, ChecklistItem } from '@/lib/types';
 import SwipeableRow from './SwipeableRow';
-import { PencilIcon, MountainIcon, KidsIcon } from './Icons';
+import { PencilIcon } from './Icons';
 
 interface Props {
-  presets: TripPreset[];
-  setPresets: (p: TripPreset[]) => void;
   locations: CampingLocation[];
   setLocations: (l: CampingLocation[]) => void;
-  currentConfig: TripConfig;
-  applyConfig: (c: TripConfig) => void;
+  wishlist: WishlistItem[];
+  setWishlist: (w: WishlistItem[]) => void;
   onUndo?: (label: string, restore: () => void) => void;
 }
 
-type SubTab = 'presets' | 'plekken';
-
-const SUB_TABS: { id: SubTab; label: string; emoji: string }[] = [
-  { id: 'presets', label: 'Presets', emoji: '🌟' },
-  { id: 'plekken', label: 'Plekken', emoji: '📍' },
-];
-
-const TRIP_EMOJI: Record<TripConfig['type'], string> = {
-  dag: '⛺',
-  weekend: '⛺',
-  week: '🗓️',
-  wandeldag: '⛰️',
-  wandeltrip: '🥾',
-};
-
-const TRIP_NAME: Record<TripConfig['type'], string> = {
-  dag: '+1 nacht',
-  weekend: '+1 nacht',
-  week: '+7 nachten',
-  wandeldag: 'Wandeldag',
-  wandeltrip: 'Wandeltrip',
-};
-
-const tripLabel = (c: TripConfig) => {
-  const t = TRIP_NAME[c.type];
-  const extras = [c.mountains && '⛰️', c.kids && '👧'].filter(Boolean).join(' ');
-  return extras ? `${t} ${extras}` : t;
-};
-
-const sameConfig = (a: TripConfig, b: TripConfig) =>
-  a.type === b.type && a.mountains === b.mountains && a.kids === b.kids;
+type SubTab = 'plekken' | 'wishlist';
 
 export default function TripsView(props: Props) {
-  const [sub, setSub] = useState<SubTab>('presets');
+  const [sub, setSub] = useState<SubTab>('plekken');
 
   return (
     <div>
-      <div className="flex gap-1 bg-white rounded-2xl border border-stone-200 p-1 mb-4">
-        {SUB_TABS.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setSub(t.id)}
-            className={`flex-1 py-1.5 rounded-xl text-xs font-medium transition-all ${
-              sub === t.id ? 'bg-green-600 text-white' : 'text-stone-500'
-            }`}
-          >
-            {t.emoji} {t.label}
-          </button>
-        ))}
+      <div className="relative flex bg-stone-200/60 rounded-xl p-1 mb-4">
+        <div
+          className="absolute top-1 bottom-1 bg-white rounded-lg shadow-sm transition-all duration-200 ease-out"
+          style={{
+            left: sub === 'plekken' ? '0.25rem' : 'calc(50% + 0.25rem)',
+            width: 'calc(50% - 0.5rem)',
+          }}
+        />
+        <button
+          onClick={() => setSub('plekken')}
+          className={`relative flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-200 ${
+            sub === 'plekken' ? 'text-stone-800' : 'text-stone-500'
+          }`}
+        >
+          Plekken
+        </button>
+        <button
+          onClick={() => setSub('wishlist')}
+          className={`relative flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-200 ${
+            sub === 'wishlist' ? 'text-stone-800' : 'text-stone-500'
+          }`}
+        >
+          Wishlist
+        </button>
       </div>
 
-      {sub === 'presets' && <PresetsList {...props} onUndo={props.onUndo} />}
-      {sub === 'plekken' && <LocationsList {...props} onUndo={props.onUndo} />}
-    </div>
-  );
-}
-
-function PresetsList({ presets, setPresets, currentConfig, applyConfig, onUndo }: Props) {
-  const [name, setName] = useState('');
-
-  const save = () => {
-    if (!name.trim()) return;
-    setPresets([...presets, { id: `p_${Date.now()}`, name: name.trim(), config: currentConfig }]);
-    setName('');
-  };
-  const remove = (id: string) => {
-    const snapshot = presets;
-    const deleted = snapshot.find(p => p.id === id);
-    setPresets(presets.filter(p => p.id !== id));
-    onUndo?.(`"${deleted?.name ?? 'Preset'}" verwijderd`, () => setPresets(snapshot));
-  };
-
-  return (
-    <div>
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 mb-4">
-        <p className="text-xs text-amber-900 leading-relaxed">
-          <strong>Presets</strong> zijn vaste trip-recepten. Stel je trip in (bv. <em>Week + Bergen + Kinderen</em>),
-          bewaar onder een naam, en activeer hem later met één tap zodat je paklijst meteen klopt.
-        </p>
-      </div>
-
-      <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-3 mb-4">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-xs text-stone-500">Huidige trip:</span>
-          <span className="text-xs font-medium text-stone-700 bg-stone-100 px-2 py-0.5 rounded-full">
-            {tripLabel(currentConfig)}
-          </span>
-        </div>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            placeholder="Naam (bv. Bergen weekend met kids)"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && save()}
-            className="flex-1 min-w-0 border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
-          />
-          <button
-            onClick={save}
-            disabled={!name.trim()}
-            className="flex-shrink-0 bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-green-700 disabled:opacity-40"
-          >
-            Bewaar
-          </button>
-        </div>
-      </div>
-
-      {presets.length === 0 ? (
-        <div className="text-center py-8 text-stone-400 text-sm">Nog geen presets.</div>
-      ) : (
-        <div className="space-y-2">
-          {presets.map(p => {
-            const isActive = sameConfig(p.config, currentConfig);
-            return (
-              <SwipeableRow
-                key={p.id}
-                onDelete={() => remove(p.id)}
-                className={`rounded-xl border ${isActive ? 'border-green-400 bg-green-50' : 'border-stone-200 bg-white'}`}
-              >
-                <div className={`rounded-xl px-4 py-3 flex items-center gap-3 ${isActive ? 'bg-green-50' : 'bg-white'}`}>
-                  <span className="text-lg">{TRIP_EMOJI[p.config.type]}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-medium text-stone-700 truncate">{p.name}</span>
-                      {isActive && <span className="text-[10px] bg-green-600 text-white px-1.5 py-0.5 rounded-full font-medium">Actief</span>}
-                    </div>
-                    <div className="text-xs text-stone-400 flex items-center gap-1">
-                      <span>{TRIP_NAME[p.config.type]}</span>
-                      {p.config.mountains && <span className="flex items-center gap-0.5">· <MountainIcon className="w-3 h-3" /></span>}
-                      {p.config.kids && <span className="flex items-center gap-0.5">· <KidsIcon className="w-3 h-3" /></span>}
-                    </div>
-                  </div>
-                  {!isActive && (
-                    <button
-                      onClick={() => applyConfig(p.config)}
-                      className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-full font-medium hover:bg-green-700 flex-shrink-0"
-                    >
-                      Activeer
-                    </button>
-                  )}
-                </div>
-              </SwipeableRow>
-            );
-          })}
-        </div>
-      )}
+      {sub === 'plekken' && <LocationsList {...props} />}
+      {sub === 'wishlist' && <WishlistList {...props} />}
     </div>
   );
 }
@@ -172,6 +59,7 @@ function LocationsList({ locations, setLocations, onUndo }: Props) {
   const [editing, setEditing] = useState<CampingLocation | null>(null);
   const [form, setForm] = useState(EMPTY_LOC);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [newChecklistText, setNewChecklistText] = useState<Record<string, string>>({});
 
   const submit = () => {
     if (!form.name.trim()) return;
@@ -207,6 +95,36 @@ function LocationsList({ locations, setLocations, onUndo }: Props) {
     const deleted = snapshot.find(l => l.id === id);
     setLocations(locations.filter(l => l.id !== id));
     onUndo?.(`"${deleted?.name ?? 'Camping'}" verwijderd`, () => setLocations(snapshot));
+  };
+
+  const toggleChecklistItem = (locId: string, itemId: string) => {
+    setLocations(locations.map(l => {
+      if (l.id !== locId) return l;
+      const checklist = (l.checklist ?? []).map(c =>
+        c.id === itemId ? { ...c, done: !c.done } : c
+      );
+      return { ...l, checklist };
+    }));
+  };
+
+  const addChecklistItem = (locId: string, text: string) => {
+    if (!text.trim()) return;
+    setLocations(locations.map(l => {
+      if (l.id !== locId) return l;
+      const checklist: ChecklistItem[] = [
+        ...(l.checklist ?? []),
+        { id: `c_${Date.now()}`, text: text.trim(), done: false },
+      ];
+      return { ...l, checklist };
+    }));
+    setNewChecklistText(prev => ({ ...prev, [locId]: '' }));
+  };
+
+  const removeChecklistItem = (locId: string, itemId: string) => {
+    setLocations(locations.map(l => {
+      if (l.id !== locId) return l;
+      return { ...l, checklist: (l.checklist ?? []).filter(c => c.id !== itemId) };
+    }));
   };
 
   return (
@@ -262,6 +180,7 @@ function LocationsList({ locations, setLocations, onUndo }: Props) {
       <div className="space-y-2">
         {locations.map(l => {
           const isOpen = expanded === l.id;
+          const checklist = l.checklist ?? [];
           return (
             <SwipeableRow
               key={l.id}
@@ -288,6 +207,56 @@ function LocationsList({ locations, setLocations, onUndo }: Props) {
                         <pre className="text-xs text-stone-600 whitespace-pre-wrap font-sans">{l.notes}</pre>
                       </div>
                     )}
+
+                    <div className="pt-3 border-t border-stone-100 mt-2">
+                      <div className="text-xs font-semibold text-stone-500 mb-2">Voor vertrek</div>
+                      {checklist.length > 0 && (
+                        <div className="space-y-1.5 mb-2">
+                          {checklist.map(c => (
+                            <div key={c.id} className="flex items-center gap-2 group">
+                              <button
+                                onClick={() => toggleChecklistItem(l.id, c.id)}
+                                className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors ${
+                                  c.done
+                                    ? 'bg-green-600 border-green-600 text-white'
+                                    : 'border-stone-300 bg-white'
+                                }`}
+                                aria-label={c.done ? 'Vink uit' : 'Vink af'}
+                              >
+                                {c.done && (
+                                  <svg className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                )}
+                              </button>
+                              <span className={`flex-1 text-xs ${c.done ? 'line-through text-stone-400' : 'text-stone-700'}`}>
+                                {c.text}
+                              </span>
+                              <button
+                                onClick={() => removeChecklistItem(l.id, c.id)}
+                                className="text-stone-300 hover:text-stone-500 text-xs px-1"
+                                aria-label="Verwijder taak"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <input
+                        type="text"
+                        placeholder="+ taak toevoegen"
+                        value={newChecklistText[l.id] ?? ''}
+                        onChange={e => setNewChecklistText(prev => ({ ...prev, [l.id]: e.target.value }))}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') {
+                            addChecklistItem(l.id, newChecklistText[l.id] ?? '');
+                          }
+                        }}
+                        className="w-full border border-stone-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-green-400"
+                      />
+                    </div>
+
                     <div className="flex gap-3 pt-2 border-t border-stone-100 mt-2">
                       <button onClick={() => startEdit(l)} className="text-xs text-stone-500 flex items-center gap-1">
                         <PencilIcon className="w-3.5 h-3.5" /> Bewerken
@@ -299,6 +268,127 @@ function LocationsList({ locations, setLocations, onUndo }: Props) {
             </SwipeableRow>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+const EMPTY_WISH = { name: '', address: '', notes: '' };
+
+function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }: Props) {
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState(EMPTY_WISH);
+
+  const submit = () => {
+    if (!form.name.trim()) return;
+    setWishlist([
+      ...wishlist,
+      {
+        id: `w_${Date.now()}`,
+        name: form.name.trim(),
+        address: form.address || undefined,
+        notes: form.notes || undefined,
+      },
+    ]);
+    setForm(EMPTY_WISH);
+    setShowForm(false);
+  };
+
+  const remove = (id: string) => {
+    const snapshot = wishlist;
+    const deleted = snapshot.find(w => w.id === id);
+    setWishlist(wishlist.filter(w => w.id !== id));
+    onUndo?.(`"${deleted?.name ?? 'Wishlist'}" verwijderd`, () => setWishlist(snapshot));
+  };
+
+  const promote = (w: WishlistItem) => {
+    setLocations([
+      ...locations,
+      {
+        id: `l_${Date.now()}`,
+        name: w.name,
+        address: w.address,
+        notes: w.notes,
+      },
+    ]);
+    setWishlist(wishlist.filter(x => x.id !== w.id));
+  };
+
+  return (
+    <div>
+      {!showForm ? (
+        <button
+          onClick={() => { setShowForm(true); setForm(EMPTY_WISH); }}
+          className="w-full py-3 mb-4 rounded-2xl bg-green-600 text-white font-medium hover:bg-green-700"
+        >
+          + Plek toevoegen aan wishlist
+        </button>
+      ) : (
+        <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-4 space-y-2 mb-4">
+          <h3 className="font-semibold text-stone-700 mb-1">Nieuwe wishlist-plek</h3>
+          <input
+            type="text"
+            placeholder="Naam (verplicht)"
+            value={form.name}
+            onChange={e => setForm(prev => ({ ...prev, name: e.target.value }))}
+            className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
+          <input
+            type="text"
+            placeholder="Adres"
+            value={form.address}
+            onChange={e => setForm(prev => ({ ...prev, address: e.target.value }))}
+            className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+          />
+          <textarea
+            placeholder="Notities (waarom, link, tips...)"
+            value={form.notes}
+            onChange={e => setForm(prev => ({ ...prev, notes: e.target.value }))}
+            rows={3}
+            className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 resize-none"
+          />
+          <div className="flex gap-2">
+            <button onClick={submit} className="flex-1 bg-green-600 text-white py-2 rounded-xl text-sm font-medium hover:bg-green-700">
+              Toevoegen
+            </button>
+            <button onClick={() => setShowForm(false)} className="flex-1 bg-stone-100 text-stone-600 py-2 rounded-xl text-sm font-medium">
+              Annuleren
+            </button>
+          </div>
+        </div>
+      )}
+
+      {wishlist.length === 0 && !showForm && (
+        <div className="text-center py-8 text-stone-400 text-sm">Nog geen wishlist-plekken.</div>
+      )}
+
+      <div className="space-y-2">
+        {wishlist.map(w => (
+          <SwipeableRow
+            key={w.id}
+            onDelete={() => remove(w.id)}
+            className="bg-white rounded-xl border border-stone-200 overflow-hidden"
+          >
+            <div className="bg-white px-4 py-3 flex items-center gap-3">
+              <span>✨</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-stone-700 truncate">{w.name}</div>
+                {w.address && (
+                  <div className="text-xs text-stone-400 truncate">{w.address}</div>
+                )}
+                {!w.address && w.notes && (
+                  <div className="text-xs text-stone-400 truncate">{w.notes}</div>
+                )}
+              </div>
+              <button
+                onClick={() => promote(w)}
+                className="flex-shrink-0 text-xs bg-green-600 text-white px-3 py-1.5 rounded-full font-medium hover:bg-green-700"
+              >
+                → Plekken
+              </button>
+            </div>
+          </SwipeableRow>
+        ))}
       </div>
     </div>
   );

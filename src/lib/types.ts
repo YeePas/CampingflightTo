@@ -51,11 +51,10 @@ export interface GroceryItem {
   checked: boolean;
 }
 
-export interface TripPreset {
+export interface ChecklistItem {
   id: string;
-  name: string;
-  config: TripConfig;
-  notes?: string;
+  text: string;
+  done: boolean;
 }
 
 export interface CampingLocation {
@@ -66,6 +65,14 @@ export interface CampingLocation {
   wifi?: string;
   contact?: string;
   notes?: string;
+  checklist?: ChecklistItem[];
+}
+
+export interface WishlistItem {
+  id: string;
+  name: string;
+  notes?: string;
+  address?: string;
 }
 
 export const GROCERY_CATEGORIES = [

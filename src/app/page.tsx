@@ -247,12 +247,10 @@ export default function Home() {
 
         {activeTab === 'trips' && (
           <TripsView
-            presets={s.presets}
-            setPresets={s.setPresets}
             locations={s.locations}
             setLocations={s.setLocations}
-            currentConfig={s.tripConfig}
-            applyConfig={s.setTripConfig}
+            wishlist={s.wishlist}
+            setWishlist={s.setWishlist}
             onUndo={arm}
           />
         )}

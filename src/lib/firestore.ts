@@ -2,7 +2,7 @@ import { doc, getDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db } from './firebase';
 import {
   PackItem, Tip, CheckedItems, TripConfig,
-  GroceryItem, TripPreset, CampingLocation,
+  GroceryItem, CampingLocation, WishlistItem,
 } from './types';
 import { DEFAULT_ITEMS, DEFAULT_TIPS } from './defaultData';
 
@@ -11,8 +11,8 @@ const REF = {
   tips: () => doc(db, 'camping', 'tips'),
   state: () => doc(db, 'camping', 'state'),
   groceries: () => doc(db, 'camping', 'groceries'),
-  presets: () => doc(db, 'camping', 'presets'),
   locations: () => doc(db, 'camping', 'locations'),
+  wishlist: () => doc(db, 'camping', 'wishlist'),
 };
 
 // --- Items ---
@@ -157,12 +157,12 @@ export const fetchGroceries = () => fetchList<GroceryItem>(REF.groceries(), 'gro
 export const saveGroceries = (groceries: GroceryItem[]) => setDoc(REF.groceries(), { groceries });
 export const subscribeGroceries = (cb: (g: GroceryItem[]) => void) => subscribeList<GroceryItem>(REF.groceries(), 'groceries', cb);
 
-// Presets
-export const fetchPresets = () => fetchList<TripPreset>(REF.presets(), 'presets');
-export const savePresets = (presets: TripPreset[]) => setDoc(REF.presets(), { presets });
-export const subscribePresets = (cb: (p: TripPreset[]) => void) => subscribeList<TripPreset>(REF.presets(), 'presets', cb);
-
 // Locations
 export const fetchLocations = () => fetchList<CampingLocation>(REF.locations(), 'locations');
 export const saveLocations = (locations: CampingLocation[]) => setDoc(REF.locations(), { locations });
 export const subscribeLocations = (cb: (l: CampingLocation[]) => void) => subscribeList<CampingLocation>(REF.locations(), 'locations', cb);
+
+// Wishlist
+export const fetchWishlist = () => fetchList<WishlistItem>(REF.wishlist(), 'wishlist');
+export const saveWishlist = (wishlist: WishlistItem[]) => setDoc(REF.wishlist(), { wishlist });
+export const subscribeWishlist = (cb: (w: WishlistItem[]) => void) => subscribeList<WishlistItem>(REF.wishlist(), 'wishlist', cb);
