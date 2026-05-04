@@ -154,7 +154,14 @@ export async function saveChecked(checked: CheckedItems): Promise<void> {
 }
 
 export async function saveTripConfig(tripConfig: TripConfig): Promise<void> {
-  await setDoc(REF.state(), { tripConfig }, { merge: true });
+  const clean: TripConfig = {
+    type: tripConfig.type,
+    mountains: tripConfig.mountains,
+    kids: tripConfig.kids,
+    ...(tripConfig.departureDate ? { departureDate: tripConfig.departureDate } : {}),
+    ...(tripConfig.weatherPlace  ? { weatherPlace:  tripConfig.weatherPlace  } : {}),
+  };
+  await setDoc(REF.state(), { tripConfig: clean }, { merge: true });
 }
 
 export function subscribeState(cb: (checked: CheckedItems, tripConfig: TripConfig) => void): () => void {
