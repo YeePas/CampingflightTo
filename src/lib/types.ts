@@ -19,6 +19,8 @@ export interface TripConfig {
   type: TripType;
   mountains: boolean;
   kids: boolean;
+  departureDate?: string;  // yyyy-MM-dd
+  weatherPlace?: string;   // free-text city/region for open-meteo geocoding
 }
 
 export interface Tip {

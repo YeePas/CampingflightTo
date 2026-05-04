@@ -39,15 +39,18 @@ const EMPTY_FORM = {
 export default function BeheerView({ items, onAdd, onDelete, onEdit }: Props) {
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState('Alle');
+  const [sortAZ, setSortAZ] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<PackItem | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
 
-  const filtered = items.filter(item => {
-    const matchSearch = item.name.toLowerCase().includes(search.toLowerCase());
-    const matchCat = filterCat === 'Alle' || item.category === filterCat;
-    return matchSearch && matchCat;
-  });
+  const filtered = items
+    .filter(item => {
+      const matchSearch = item.name.toLowerCase().includes(search.toLowerCase());
+      const matchCat = filterCat === 'Alle' || item.category === filterCat;
+      return matchSearch && matchCat;
+    })
+    .sort((a, b) => sortAZ ? a.name.localeCompare(b.name, 'nl') : 0);
 
   const toggleTripType = (type: TripType) => {
     setForm(prev => ({
@@ -285,7 +288,19 @@ export default function BeheerView({ items, onAdd, onDelete, onEdit }: Props) {
         })}
       </div>
 
-      <p className="text-xs text-stone-400 mb-2">{filtered.length} items</p>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs text-stone-400">{filtered.length} items</p>
+        <button
+          onClick={() => setSortAZ(v => !v)}
+          className={`text-xs font-medium px-2.5 py-1 rounded-full border transition-all ${
+            sortAZ
+              ? 'bg-green-600 border-green-600 text-white'
+              : 'bg-white border-stone-200 text-stone-500 hover:border-stone-300'
+          }`}
+        >
+          A→Z
+        </button>
+      </div>
 
       {/* Items list */}
       <div className="space-y-2">
