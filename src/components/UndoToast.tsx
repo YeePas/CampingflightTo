@@ -35,7 +35,10 @@ export default function UndoToast({ label, onUndo, onDismiss, duration = 4000 }:
   };
 
   return (
-    <div className="fixed bottom-[72px] inset-x-4 z-50 flex justify-center pointer-events-none">
+    <div
+      className="fixed inset-x-4 z-50 flex justify-center pointer-events-none"
+      style={{ bottom: `calc(5.5rem + env(safe-area-inset-bottom))` }}
+    >
       <div className="w-full max-w-lg pointer-events-auto">
         <div className="bg-stone-800 text-white rounded-2xl shadow-xl overflow-hidden">
           <div className="flex items-center gap-3 px-4 py-3">

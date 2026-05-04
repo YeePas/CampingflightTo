@@ -10,17 +10,18 @@ import BeheerView from '@/components/BeheerView';
 import GroceryList from '@/components/GroceryList';
 import TripsView from '@/components/TripsView';
 import UndoToast from '@/components/UndoToast';
+import { BackpackIcon, LightbulbIcon, MapIcon, SlidersIcon } from '@/components/Icons';
 import LoginScreen from '@/components/LoginScreen';
 import { PackItem, Tip } from '@/lib/types';
 
 type Tab = 'paklijst' | 'tips' | 'trips' | 'beheer';
 type PakSub = 'spullen' | 'boodschappen';
 
-const TABS: { id: Tab; label: string; emoji: string }[] = [
-  { id: 'paklijst', label: 'Paklijst', emoji: '🎒' },
-  { id: 'tips', label: 'Tips', emoji: '💡' },
-  { id: 'trips', label: 'Trips', emoji: '📖' },
-  { id: 'beheer', label: 'Beheer', emoji: '⚙️' },
+const TABS: { id: Tab; label: string; Icon: (p: { className?: string }) => React.ReactElement }[] = [
+  { id: 'paklijst', label: 'Paklijst', Icon: BackpackIcon },
+  { id: 'tips', label: 'Tips', Icon: LightbulbIcon },
+  { id: 'trips', label: 'Trips', Icon: MapIcon },
+  { id: 'beheer', label: 'Beheer', Icon: SlidersIcon },
 ];
 
 function timeAgo(date: Date | null): string {
@@ -183,7 +184,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="max-w-lg mx-auto px-4 py-4 pb-28">
+      <div className="max-w-lg mx-auto px-4 py-4 pb-32">
         {activeTab === 'paklijst' && (
           <>
             <div className="flex gap-1 bg-white rounded-2xl border border-stone-200 p-1 mb-4">
@@ -253,31 +254,37 @@ export default function Home() {
         )}
       </div>
 
-      {/* Bottom tab bar */}
+      {/* Bottom tab bar — floating iOS-style pill */}
       <nav
-        className="fixed bottom-0 inset-x-0 bg-white border-t border-stone-200 shadow-[0_-2px_10px_rgba(0,0,0,0.04)] z-20"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        className="fixed inset-x-0 z-20 px-4 pointer-events-none"
+        style={{ bottom: `calc(0.75rem + env(safe-area-inset-bottom))` }}
       >
-        <div className="max-w-lg mx-auto flex">
-          {TABS.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => {
-                if (activeTab === tab.id) {
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                } else {
-                  setActiveTab(tab.id);
-                  window.scrollTo({ top: 0 });
-                }
-              }}
-              className={`flex-1 py-2 text-xs font-medium transition-all flex flex-col items-center gap-0.5 ${
-                activeTab === tab.id ? 'text-green-700' : 'text-stone-500'
-              }`}
-            >
-              <span className={`text-lg transition-transform ${activeTab === tab.id ? 'scale-110' : ''}`}>{tab.emoji}</span>
-              <span>{tab.label}</span>
-            </button>
-          ))}
+        <div className="max-w-md mx-auto bg-white/90 backdrop-blur-md rounded-full shadow-[0_8px_28px_rgba(0,0,0,0.12)] border border-stone-200/70 p-1.5 flex pointer-events-auto">
+          {TABS.map(tab => {
+            const isActive = activeTab === tab.id;
+            const Icon = tab.Icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => {
+                  if (activeTab === tab.id) {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  } else {
+                    setActiveTab(tab.id);
+                    window.scrollTo({ top: 0 });
+                  }
+                }}
+                className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-full transition-all ${
+                  isActive
+                    ? 'bg-green-600 text-white shadow-sm'
+                    : 'text-stone-500 hover:text-stone-700'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                <span className="text-[10px] font-medium leading-none tracking-wide">{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
       </nav>
 
