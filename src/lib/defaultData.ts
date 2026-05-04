@@ -115,6 +115,7 @@ export const DEFAULT_TIPS: Tip[] = [
     category: 'Knopen',
     knotIcon: 'bowline',
     content: 'De paalsteek maakt een vaste lus die niet strakker trekt onder belasting.\n\n1. Maak een kleine lus in het touw (heen gaan over het staande part)\n2. Steek het losse eind omhoog door de lus\n3. Ga achter het staande part langs\n4. Steek het losse eind terug door de lus naar beneden\n5. Trek stevig aan\n\nGebruik: tent vastzetten, reddingslijn, aan paal binden.',
+    imageUrl: '/knots/paalsteek.webp',
   },
   {
     id: 't2',

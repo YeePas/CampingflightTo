@@ -83,9 +83,23 @@ export async function fetchTips(): Promise<Tip[]> {
   }
   const existing = snap.data().tips as Tip[];
   const existingIds = new Set(existing.map(t => t.id));
+
+  // Merge new default tips not yet in Firestore
   const missing = DEFAULT_TIPS.filter(t => !existingIds.has(t.id));
-  if (missing.length > 0) {
-    const merged = [...existing, ...missing];
+
+  // Backfill imageUrl from defaults onto existing tips that don't have one yet
+  let imagePatched = false;
+  const patched = existing.map(tip => {
+    const def = DEFAULT_TIPS.find(d => d.id === tip.id);
+    if (def?.imageUrl && !tip.imageUrl) {
+      imagePatched = true;
+      return { ...tip, imageUrl: def.imageUrl };
+    }
+    return tip;
+  });
+
+  if (missing.length > 0 || imagePatched) {
+    const merged = [...patched, ...missing];
     await setDoc(REF.tips(), { tips: merged });
     return merged;
   }
