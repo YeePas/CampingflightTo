@@ -212,23 +212,33 @@ export default function BeheerView({ items, onAdd, onDelete, onEdit }: Props) {
         </div>
       )}
 
-      {/* Search & filter */}
-      <div className="flex gap-2 mb-3">
-        <input
-          type="text"
-          placeholder="Zoeken..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="flex-1 border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
-        />
-        <select
-          value={filterCat}
-          onChange={e => setFilterCat(e.target.value)}
-          className="border border-stone-200 rounded-xl px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 bg-white"
-        >
-          <option value="Alle">Alle</option>
-          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
+      {/* Search */}
+      <input
+        type="text"
+        placeholder="Zoeken..."
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 mb-3"
+      />
+
+      {/* Wrapped category filter chips */}
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {['Alle', ...CATEGORIES].map(c => {
+          const isActive = filterCat === c;
+          return (
+            <button
+              key={c}
+              onClick={() => setFilterCat(c)}
+              className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
+                isActive
+                  ? 'bg-green-600 border-green-600 text-white'
+                  : 'bg-white border-stone-200 text-stone-600 hover:border-stone-300'
+              }`}
+            >
+              {c}
+            </button>
+          );
+        })}
       </div>
 
       <p className="text-xs text-stone-400 mb-2">{filtered.length} items</p>

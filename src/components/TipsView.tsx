@@ -2,7 +2,6 @@
 
 import { Tip, TIP_CATEGORIES } from '@/lib/types';
 import { useState } from 'react';
-import KnotIllustration from './KnotIllustration';
 import { PencilIcon } from './Icons';
 
 interface Props {
@@ -21,17 +20,7 @@ const CATEGORY_EMOJI: Record<string, string> = {
   'Algemeen': '💡',
 };
 
-const KNOT_OPTIONS = [
-  { value: '', label: '— geen —' },
-  { value: 'bowline', label: 'Paalsteek (bowline)' },
-  { value: 'sheetbend', label: 'Schootsteek' },
-  { value: 'prusik', label: 'Prusik' },
-  { value: 'farrimond', label: 'Farrimond' },
-  { value: 'clove', label: 'Mastworp' },
-  { value: 'generic', label: 'Generiek' },
-];
-
-const EMPTY_FORM = { title: '', content: '', category: 'Algemeen', imageUrl: '', knotIcon: '' };
+const EMPTY_FORM = { title: '', content: '', category: 'Algemeen', imageUrl: '' };
 
 export default function TipsView({ tips, onAdd, onDelete, onEdit }: Props) {
   const [activeCategory, setActiveCategory] = useState<string>('Alle');
@@ -50,7 +39,6 @@ export default function TipsView({ tips, onAdd, onDelete, onEdit }: Props) {
       content: form.content,
       category: form.category,
       imageUrl: form.imageUrl || undefined,
-      knotIcon: form.knotIcon || undefined,
     };
     if (editingTip) {
       onEdit({ ...editingTip, ...data });
@@ -69,7 +57,6 @@ export default function TipsView({ tips, onAdd, onDelete, onEdit }: Props) {
       content: tip.content,
       category: tip.category,
       imageUrl: tip.imageUrl ?? '',
-      knotIcon: tip.knotIcon ?? '',
     });
     setShowForm(true);
   };
@@ -118,10 +105,16 @@ export default function TipsView({ tips, onAdd, onDelete, onEdit }: Props) {
 
               {isOpen && (
                 <div className="border-t border-stone-100 px-4 py-3">
-                  {tip.knotIcon && (
-                    <div className="flex justify-center bg-amber-50 rounded-xl py-3 mb-3">
-                      <KnotIllustration type={tip.knotIcon} />
-                    </div>
+                  {tip.category === 'Knopen' && (
+                    <a
+                      href={`https://www.google.com/search?q=${encodeURIComponent('site:knots3d.com ' + tip.title)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 mb-3 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100"
+                    >
+                      <span>🪢</span> Bekijk uitleg op knots3d.com
+                      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
+                    </a>
                   )}
                   {tip.imageUrl && (
                     <img
@@ -188,15 +181,6 @@ export default function TipsView({ tips, onAdd, onDelete, onEdit }: Props) {
             rows={5}
             className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 resize-none"
           />
-          {form.category === 'Knopen' && (
-            <select
-              value={form.knotIcon}
-              onChange={e => setForm(p => ({ ...p, knotIcon: e.target.value }))}
-              className="w-full border border-stone-200 rounded-xl px-3 py-2 text-sm bg-white"
-            >
-              {KNOT_OPTIONS.map(o => <option key={o.value} value={o.value}>Illustratie: {o.label}</option>)}
-            </select>
-          )}
           <input
             type="url"
             placeholder="Foto-URL (optioneel)"
