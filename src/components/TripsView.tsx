@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { TripPreset, CampingLocation, TripConfig } from '@/lib/types';
 import SwipeableRow from './SwipeableRow';
-import { PencilIcon } from './Icons';
+import { PencilIcon, MountainIcon, KidsIcon } from './Icons';
 
 interface Props {
   presets: TripPreset[];
@@ -143,8 +143,8 @@ function PresetsList({ presets, setPresets, currentConfig, applyConfig, onUndo }
                     </div>
                     <div className="text-xs text-stone-400 flex items-center gap-1">
                       <span>{TRIP_NAME[p.config.type]}</span>
-                      {p.config.mountains && <span>· ⛰️</span>}
-                      {p.config.kids && <span>· 👧</span>}
+                      {p.config.mountains && <span className="flex items-center gap-0.5">· <MountainIcon className="w-3 h-3" /></span>}
+                      {p.config.kids && <span className="flex items-center gap-0.5">· <KidsIcon className="w-3 h-3" /></span>}
                     </div>
                   </div>
                   {!isActive && (

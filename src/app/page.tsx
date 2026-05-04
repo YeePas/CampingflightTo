@@ -11,6 +11,7 @@ import GroceryList from '@/components/GroceryList';
 import TripsView from '@/components/TripsView';
 import UndoToast from '@/components/UndoToast';
 import { BackpackIcon, LightbulbIcon, MapIcon, SlidersIcon } from '@/components/Icons';
+import LogoMark from '@/components/LogoMark';
 import LoginScreen from '@/components/LoginScreen';
 import { PackItem, Tip } from '@/lib/types';
 
@@ -154,8 +155,8 @@ export default function Home() {
       >
         <div className="max-w-lg mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">⛺</span>
+            <div className="flex items-center gap-2.5">
+              <LogoMark className="w-8 h-8 rounded-[8px] shadow-sm" />
               <h1 className="text-lg font-bold tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>
                 A Campingflight To…
               </h1>

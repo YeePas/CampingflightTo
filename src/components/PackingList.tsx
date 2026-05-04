@@ -3,6 +3,7 @@
 import { PackItem, CheckedItems, CATEGORIES, TripType, TripConfig } from '@/lib/types';
 import { useState } from 'react';
 import SwipeableRow from './SwipeableRow';
+import { KidsIcon } from './Icons';
 
 interface Props {
   items: PackItem[];
@@ -151,7 +152,7 @@ export default function PackingList({ items, checked, onToggle, tripType, onDele
                             <span className="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded-full font-medium">7+</span>
                           )}
                           {item.mountains && <span className="text-xs">⛰️</span>}
-                          {item.kids && <span className="text-xs">👧</span>}
+                          {item.kids && <KidsIcon className="w-3 h-3 text-stone-500" />}
                         </div>
                       )}
                     </button>

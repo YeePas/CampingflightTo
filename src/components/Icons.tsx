@@ -111,6 +111,17 @@ export function BootIcon({ className = 'w-5 h-5' }: { className?: string }) {
   );
 }
 
+export function KidsIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} {...tabIconProps}>
+      <circle cx="12" cy="6.5" r="3" />
+      <path d="M7 21 L7 16 C7 13.2 9.2 11 12 11 C14.8 11 17 13.2 17 16 L17 21" />
+      <path d="M10 21 L10 17" />
+      <path d="M14 21 L14 17" />
+    </svg>
+  );
+}
+
 export function CartIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
     <svg className={className} {...tabIconProps}>

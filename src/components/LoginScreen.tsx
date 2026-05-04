@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { User } from '@/hooks/useAuth';
+import LogoMark from './LogoMark';
 
 interface Props {
   onLogin: (who: User, pin: string) => boolean;
@@ -46,7 +47,7 @@ export default function LoginScreen({ onLogin }: Props) {
     >
       {/* Logo */}
       <div className="text-center mb-10">
-        <div className="text-5xl mb-3">⛺</div>
+        <LogoMark className="w-20 h-20 rounded-2xl shadow-lg mx-auto mb-4" />
         <h1 className="text-2xl font-bold text-white tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>
           A Campingflight To…
         </h1>

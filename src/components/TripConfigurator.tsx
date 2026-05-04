@@ -1,7 +1,7 @@
 'use client';
 
 import { TripConfig, TripType } from '@/lib/types';
-import { TentIcon, CalendarIcon, MountainIcon, BootIcon } from './Icons';
+import { TentIcon, CalendarIcon, MountainIcon, BootIcon, KidsIcon } from './Icons';
 
 interface Props {
   config: TripConfig;
@@ -88,7 +88,7 @@ export default function TripConfigurator({ config, onChange, onReset, checkedCou
                 : 'bg-white border-stone-200 text-stone-500 hover:border-stone-300'
             }`}
           >
-            <span className="text-sm leading-none">👧</span> Kinderen
+            <KidsIcon className="w-3.5 h-3.5" /> Kinderen
           </button>
         </div>
       )}
