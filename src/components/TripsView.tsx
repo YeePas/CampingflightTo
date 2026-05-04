@@ -305,8 +305,8 @@ function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }
       const newItem: WishlistItem = {
         id: `w_${Date.now()}`,
         name: form.name.trim(),
-        address: form.address || undefined,
-        notes: form.notes || undefined,
+        ...(form.address ? { address: form.address } : {}),
+        ...(form.notes ? { notes: form.notes } : {}),
       };
       setWishlist(prev => [...prev, newItem]);
     }
