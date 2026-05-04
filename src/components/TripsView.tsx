@@ -207,7 +207,7 @@ function LocationsList({ locations, setLocations, onUndo }: Props) {
                 </button>
                 {isOpen && (
                   <div className="border-t border-stone-100 px-4 py-3 space-y-1 text-sm">
-                    {l.address && <Field label="Adres" value={l.address} />}
+                    {l.address && <AddressField address={l.address} />}
                     {l.gateCode && <Field label="Code" value={l.gateCode} mono />}
                     {l.wifi && <Field label="WiFi" value={l.wifi} mono />}
                     {l.contact && <Field label="Contact" value={l.contact} />}
@@ -405,6 +405,71 @@ function Field({ label, value, mono }: { label: string; value: string; mono?: bo
     <div className="flex gap-2">
       <span className="text-xs text-stone-400 w-16 flex-shrink-0">{label}</span>
       <span className={`text-sm text-stone-700 break-all ${mono ? 'font-mono' : ''}`}>{value}</span>
+    </div>
+  );
+}
+
+function AddressField({ address }: { address: string }) {
+  const enc = encodeURIComponent(address);
+  const maps = [
+    {
+      label: 'Apple Maps',
+      href: `https://maps.apple.com/?q=${enc}`,
+      // blue-ish
+      cls: 'bg-blue-50 text-blue-700 border-blue-100',
+      icon: (
+        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Google Maps',
+      href: `https://www.google.com/maps/search/?api=1&query=${enc}`,
+      cls: 'bg-green-50 text-green-700 border-green-100',
+      icon: (
+        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+        </svg>
+      ),
+    },
+    {
+      label: 'Waze',
+      href: `https://waze.com/ul?q=${enc}&navigate=yes`,
+      cls: 'bg-sky-50 text-sky-700 border-sky-100',
+      icon: (
+        // Waze-style smiley steering wheel — simplified
+        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="10" r="8" fill="none" stroke="currentColor" strokeWidth="2"/>
+          <circle cx="9" cy="9" r="1.2"/>
+          <circle cx="15" cy="9" r="1.2"/>
+          <path d="M9 13c.8 1.2 5.2 1.2 6 0" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          <path d="M12 18v4M8 21h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+        </svg>
+      ),
+    },
+  ];
+
+  return (
+    <div className="flex gap-2">
+      <span className="text-xs text-stone-400 w-16 flex-shrink-0 pt-0.5">Adres</span>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-stone-700 break-all mb-1.5">{address}</p>
+        <div className="flex gap-1.5 flex-wrap">
+          {maps.map(m => (
+            <a
+              key={m.label}
+              href={m.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full border ${m.cls}`}
+            >
+              {m.icon}
+              {m.label}
+            </a>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
