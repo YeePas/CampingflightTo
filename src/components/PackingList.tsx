@@ -3,7 +3,6 @@
 import { PackItem, CheckedItems, CATEGORIES, TripType, TripConfig } from '@/lib/types';
 import { useState } from 'react';
 import SwipeableRow from './SwipeableRow';
-import { KidsIcon } from './Icons';
 
 interface Props {
   items: PackItem[];
@@ -143,18 +142,6 @@ export default function PackingList({ items, checked, onToggle, tripType, onDele
                           <p className="text-xs text-stone-400 mt-0.5">{item.notes}</p>
                         )}
                       </div>
-                      {!isHikingMode && (
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          {!item.tripTypes.includes('dag') && item.tripTypes.includes('weekend') && (
-                            <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full font-medium">1+</span>
-                          )}
-                          {!item.tripTypes.includes('dag') && !item.tripTypes.includes('weekend') && item.tripTypes.includes('week') && (
-                            <span className="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded-full font-medium">7+</span>
-                          )}
-                          {item.mountains && <span className="text-xs">⛰️</span>}
-                          {item.kids && <KidsIcon className="w-3 h-3 text-stone-500" />}
-                        </div>
-                      )}
                     </button>
                   );
 

@@ -63,20 +63,27 @@ function LocationsList({ locations, setLocations, onUndo }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [newChecklistText, setNewChecklistText] = useState<Record<string, string>>({});
 
+  // Strip undefined/empty fields so Firestore doesn't reject them
+  const buildLocationData = (form: typeof EMPTY_LOC): Omit<CampingLocation, 'id' | 'checklist'> => {
+    return {
+      name: form.name.trim(),
+      ...(form.address ? { address: form.address } : {}),
+      ...(form.gateCode ? { gateCode: form.gateCode } : {}),
+      ...(form.wifi ? { wifi: form.wifi } : {}),
+      ...(form.contact ? { contact: form.contact } : {}),
+      ...(form.notes ? { notes: form.notes } : {}),
+    };
+  };
+
   const submit = () => {
     if (!form.name.trim()) return;
-    const data = {
-      name: form.name.trim(),
-      address: form.address || undefined,
-      gateCode: form.gateCode || undefined,
-      wifi: form.wifi || undefined,
-      contact: form.contact || undefined,
-      notes: form.notes || undefined,
-    };
+    const data = buildLocationData(form);
     if (editing) {
       const editId = editing.id;
-      const editSnap = editing;
-      setLocations(prev => prev.map(l => l.id === editId ? { ...editSnap, ...data } : l));
+      const checklist = editing.checklist;
+      setLocations(prev => prev.map(l =>
+        l.id === editId ? { id: editId, ...(checklist ? { checklist } : {}), ...data } : l
+      ));
     } else {
       const newId = `l_${Date.now()}`;
       setLocations(prev => [...prev, { id: newId, ...data }]);
@@ -305,8 +312,8 @@ function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }
     const newLoc: CampingLocation = {
       id: `l_${Date.now()}`,
       name: w.name,
-      address: w.address,
-      notes: w.notes,
+      ...(w.address ? { address: w.address } : {}),
+      ...(w.notes ? { notes: w.notes } : {}),
     };
     const wId = w.id;
     setLocations(prev => [...prev, newLoc]);
