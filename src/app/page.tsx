@@ -187,22 +187,29 @@ export default function Home() {
       <div className="max-w-lg mx-auto px-4 py-4 pb-32">
         {activeTab === 'paklijst' && (
           <>
-            <div className="flex gap-1 bg-white rounded-2xl border border-stone-200 p-1 mb-4">
+            <div className="relative flex bg-stone-200/60 rounded-xl p-1 mb-4">
+              <div
+                className="absolute top-1 bottom-1 bg-white rounded-lg shadow-sm transition-all duration-200 ease-out"
+                style={{
+                  left: pakSub === 'spullen' ? '0.25rem' : 'calc(50% + 0.25rem)',
+                  width: 'calc(50% - 0.5rem)',
+                }}
+              />
               <button
                 onClick={() => setPakSub('spullen')}
-                className={`flex-1 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                  pakSub === 'spullen' ? 'bg-green-600 text-white' : 'text-stone-500'
+                className={`relative flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-200 ${
+                  pakSub === 'spullen' ? 'text-stone-800' : 'text-stone-500'
                 }`}
               >
-                🎒 Spullen
+                Spullen
               </button>
               <button
                 onClick={() => setPakSub('boodschappen')}
-                className={`flex-1 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                  pakSub === 'boodschappen' ? 'bg-green-600 text-white' : 'text-stone-500'
+                className={`relative flex-1 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-200 ${
+                  pakSub === 'boodschappen' ? 'text-stone-800' : 'text-stone-500'
                 }`}
               >
-                🛒 Boodschappen
+                Boodschappen
               </button>
             </div>
 

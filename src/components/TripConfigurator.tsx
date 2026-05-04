@@ -1,6 +1,7 @@
 'use client';
 
 import { TripConfig, TripType } from '@/lib/types';
+import { TentIcon, CalendarIcon, MountainIcon, BootIcon } from './Icons';
 
 interface Props {
   config: TripConfig;
@@ -10,19 +11,16 @@ interface Props {
   totalCount: number;
 }
 
-const TRIP_TYPES = [
-  [
-    { value: 'weekend' as TripType, label: '+1 nacht', emoji: '⛺' },
-    { value: 'week' as TripType, label: '+7 nachten', emoji: '🗓️' },
-  ],
-  [
-    { value: 'wandeldag' as TripType, label: 'Wandeldag', emoji: '⛰️' },
-    { value: 'wandeltrip' as TripType, label: 'Wandeltrip', emoji: '🥾' },
-  ],
+const TRIP_TYPES: { value: TripType; label: string; Icon: (p: { className?: string }) => React.ReactElement }[] = [
+  { value: 'weekend', label: '+1 nacht', Icon: TentIcon },
+  { value: 'week', label: '+7 nachten', Icon: CalendarIcon },
+  { value: 'wandeldag', label: 'Wandeldag', Icon: MountainIcon },
+  { value: 'wandeltrip', label: 'Wandeltrip', Icon: BootIcon },
 ];
 
 export default function TripConfigurator({ config, onChange, onReset, checkedCount, totalCount }: Props) {
   const isHikingMode = config.type === 'wandeldag' || config.type === 'wandeltrip';
+  const activeIndex = TRIP_TYPES.findIndex(t => t.value === config.type);
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-4 mb-4">
@@ -38,53 +36,59 @@ export default function TripConfigurator({ config, onChange, onReset, checkedCou
         )}
       </div>
 
-      {/* Trip type — 2×2 grid */}
-      <div className="flex flex-col gap-2 mb-3">
-        {TRIP_TYPES.map((row, rowIdx) => (
-          <div key={rowIdx} className="flex gap-2">
-            {row.map(t => (
-              <button
-                key={t.value}
-                onClick={() => {
-                  const isHike = t.value === 'wandeldag' || t.value === 'wandeltrip';
-                  onChange({ ...config, type: t.value, ...(isHike ? { mountains: false, kids: false } : {}) });
-                }}
-                className={`flex-1 py-2 px-1 rounded-xl text-sm font-medium transition-all ${
-                  config.type === t.value
-                    ? 'bg-green-600 text-white shadow-sm'
-                    : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                }`}
-              >
-                <div>{t.emoji}</div>
-                <div>{t.label}</div>
-              </button>
-            ))}
-          </div>
-        ))}
+      {/* Trip type — single-row iOS segmented control */}
+      <div className="relative flex bg-stone-200/60 rounded-xl p-1">
+        {/* Sliding indicator */}
+        <div
+          className="absolute top-1 bottom-1 bg-green-600 rounded-lg shadow-sm transition-all duration-200 ease-out"
+          style={{
+            left: `calc(${activeIndex * 25}% + 0.25rem)`,
+            width: 'calc(25% - 0.5rem)',
+          }}
+        />
+        {TRIP_TYPES.map(t => {
+          const Icon = t.Icon;
+          const isActive = config.type === t.value;
+          return (
+            <button
+              key={t.value}
+              onClick={() => {
+                const isHike = t.value === 'wandeldag' || t.value === 'wandeltrip';
+                onChange({ ...config, type: t.value, ...(isHike ? { mountains: false, kids: false } : {}) });
+              }}
+              className={`relative flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-lg transition-colors duration-200 ${
+                isActive ? 'text-white' : 'text-stone-600'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span className="text-[10px] font-semibold leading-none tracking-tight">{t.label}</span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Extra opties — hidden in hiking mode */}
+      {/* Bergen / Kinderen — chip toggles, hidden in hiking mode */}
       {!isHikingMode && (
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-3">
           <button
             onClick={() => onChange({ ...config, mountains: !config.mountains })}
-            className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all flex items-center gap-1.5 ${
               config.mountains
-                ? 'bg-blue-600 text-white shadow-sm'
-                : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                ? 'bg-blue-50 border-blue-300 text-blue-700'
+                : 'bg-white border-stone-200 text-stone-500 hover:border-stone-300'
             }`}
           >
-            <span>⛰️</span> Bergen
+            <MountainIcon className="w-3.5 h-3.5" /> Bergen
           </button>
           <button
             onClick={() => onChange({ ...config, kids: !config.kids })}
-            className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all flex items-center gap-1.5 ${
               config.kids
-                ? 'bg-orange-500 text-white shadow-sm'
-                : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                ? 'bg-orange-50 border-orange-300 text-orange-700'
+                : 'bg-white border-stone-200 text-stone-500 hover:border-stone-300'
             }`}
           >
-            <span>👧</span> Kinderen
+            <span className="text-sm leading-none">👧</span> Kinderen
           </button>
         </div>
       )}

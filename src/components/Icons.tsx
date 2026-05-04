@@ -73,6 +73,54 @@ export function MapIcon({ className = 'w-5 h-5' }: { className?: string }) {
   );
 }
 
+export function TentIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} {...tabIconProps}>
+      <path d="M12 4 L4 19 L20 19 Z" />
+      <path d="M12 4 L12 19" />
+      <path d="M9.5 19 L12 14 L14.5 19" />
+    </svg>
+  );
+}
+
+export function CalendarIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} {...tabIconProps}>
+      <rect x="3.5" y="5" width="17" height="15" rx="2" />
+      <path d="M8 3 L8 7" />
+      <path d="M16 3 L16 7" />
+      <path d="M3.5 10 L20.5 10" />
+    </svg>
+  );
+}
+
+export function MountainIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} {...tabIconProps}>
+      <path d="M3 20 L9.5 9 L13.5 15 L16 11 L21 20 Z" />
+    </svg>
+  );
+}
+
+export function BootIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} {...tabIconProps}>
+      <path d="M7 4 L11 4 L11 11 L17 11 C19 11 20 12.5 20 14.5 L20 19 L4 19 L4 14 L7 14 Z" />
+      <path d="M7 14 L11 14" />
+    </svg>
+  );
+}
+
+export function CartIcon({ className = 'w-5 h-5' }: { className?: string }) {
+  return (
+    <svg className={className} {...tabIconProps}>
+      <path d="M3 4 L5 4 L7 15 L18 15 L20 7 L7 7" />
+      <circle cx="9" cy="19" r="1.5" />
+      <circle cx="17" cy="19" r="1.5" />
+    </svg>
+  );
+}
+
 export function SlidersIcon({ className = 'w-5 h-5' }: { className?: string }) {
   return (
     <svg className={className} {...tabIconProps}>
