@@ -22,7 +22,7 @@ const TRIP_TYPE_OPTIONS: { value: TripType; label: string; Icon: (p: { className
 ];
 
 const TRIP_LABEL: Record<TripType, string> = {
-  dag: 'Dag', weekend: '+1 nacht', week: '+7 nachten',
+  weekend: '+1 nacht', week: '+7 nachten',
   wandeldag: 'Wandeldag', wandeltrip: 'Wandeltrip',
 };
 
@@ -93,9 +93,9 @@ export default function BeheerView({ items, onAdd, onDelete, onEdit }: Props) {
     setForm({
       name: item.name,
       category: item.category,
-      // Drop retired 'dag' type when editing — treat as weekend
-      tripTypes: item.tripTypes.filter(t => t !== 'dag').length > 0
-        ? item.tripTypes.filter(t => t !== 'dag')
+      // Drop retired 'dag' type when editing (may exist in old Firestore data)
+      tripTypes: (item.tripTypes as string[]).filter(t => t !== 'dag').length > 0
+        ? item.tripTypes.filter(t => (t as string) !== 'dag')
         : ['weekend'],
       mountains: item.mountains,
       kids: item.kids,
@@ -290,7 +290,7 @@ export default function BeheerView({ items, onAdd, onDelete, onEdit }: Props) {
       {/* Items list */}
       <div className="space-y-2">
         {filtered.map(item => {
-          const displayTypes = item.tripTypes.filter(t => t !== 'dag');
+          const displayTypes = item.tripTypes.filter(t => (t as string) !== 'dag');
           return (
             <SwipeableRow
               key={item.id}

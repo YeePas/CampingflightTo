@@ -1,4 +1,4 @@
-export type TripType = 'dag' | 'weekend' | 'week' | 'wandeldag' | 'wandeltrip';
+export type TripType = 'weekend' | 'week' | 'wandeldag' | 'wandeltrip';
 
 export interface PackItem {
   id: string;

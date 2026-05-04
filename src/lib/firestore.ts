@@ -51,7 +51,7 @@ export async function fetchItems(): Promise<ItemsDoc> {
       return item;
     }
 
-    // Custom item — only strip retired 'dag' if present
+    // Custom item — only strip retired 'dag' if present (old Firestore data)
     if ((item.tripTypes as string[]).includes('dag')) {
       migrated = true;
       const without = (item.tripTypes as string[]).filter(t => t !== 'dag') as PackItem['tripTypes'];
@@ -78,9 +78,12 @@ export async function saveItems(items: PackItem[], deletedDefaultIds: string[]):
   await setDoc(REF.items(), { items, deletedDefaultIds });
 }
 
-export function subscribeItems(cb: (items: PackItem[]) => void): () => void {
+export function subscribeItems(cb: (items: PackItem[], deletedDefaultIds: string[]) => void): () => void {
   return onSnapshot(REF.items(), snap => {
-    if (snap.exists()) cb(snap.data().items as PackItem[]);
+    if (snap.exists()) cb(
+      snap.data().items as PackItem[],
+      snap.data().deletedDefaultIds ?? [],
+    );
   });
 }
 
@@ -98,14 +101,15 @@ export async function fetchTips(): Promise<Tip[]> {
   // Merge new default tips not yet in Firestore
   const missing = DEFAULT_TIPS.filter(t => !existingIds.has(t.id));
 
-  // Backfill imageUrl from defaults onto existing tips that don't have one yet
+  // Backfill imageUrl and knotIcon from defaults onto existing tips
   let imagePatched = false;
   const patched = existing.map(tip => {
     const def = DEFAULT_TIPS.find(d => d.id === tip.id);
-    if (def?.imageUrl && !tip.imageUrl) {
-      imagePatched = true;
-      return { ...tip, imageUrl: def.imageUrl };
-    }
+    if (!def) return tip;
+    const updates: Partial<typeof tip> = {};
+    if (def.imageUrl && !tip.imageUrl) updates.imageUrl = def.imageUrl;
+    if (def.knotIcon && tip.knotIcon !== def.knotIcon) updates.knotIcon = def.knotIcon;
+    if (Object.keys(updates).length > 0) { imagePatched = true; return { ...tip, ...updates }; }
     return tip;
   });
 
@@ -133,8 +137,8 @@ export async function fetchState(): Promise<{ checked: CheckedItems; tripConfig:
   const snap = await getDoc(REF.state());
   if (snap.exists()) {
     const data = snap.data() as { checked: CheckedItems; tripConfig: TripConfig };
-    // Migrate 'dag' to 'weekend' — dag is no longer a selectable trip type
-    if (data.tripConfig?.type === 'dag') {
+    // Migrate 'dag' to 'weekend' — dag is no longer a selectable trip type (old Firestore data)
+    if ((data.tripConfig?.type as string) === 'dag') {
       data.tripConfig = { ...data.tripConfig, type: 'weekend' };
       await setDoc(REF.state(), data, { merge: true });
     }

@@ -147,6 +147,7 @@ export default function Home() {
       <div
         className="relative text-white"
         style={{
+          backgroundColor: '#1a3a2a', // fallback when image unavailable / offline
           backgroundImage:
             "linear-gradient(180deg, rgba(20,40,30,0.55) 0%, rgba(20,40,30,0.85) 100%), url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=70')",
           backgroundSize: 'cover',

@@ -68,7 +68,7 @@ export default function PackingList({ items, checked, onToggle, tripType, onDele
       category,
       tripTypes: [tripConfig.type],
       mountains: category === 'Bergen',
-      kids: tripConfig.kids ?? false,
+      kids: false, // never inherit kids flag — user can set it explicitly in Beheer
     });
     setAddName('');
     setAdding(null);

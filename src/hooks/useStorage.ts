@@ -64,7 +64,11 @@ export function useCampingStore() {
     refresh().catch(() => {}).finally(() => setMounted(true));
 
     unsubsRef.current = [
-      subscribeItems(items => { setItemsState(items); setLastSync(new Date()); }),
+      subscribeItems((items, deletedIds) => {
+        setItemsState(items);
+        if (deletedIds) deletedDefaultIdsRef.current = deletedIds;
+        setLastSync(new Date());
+      }),
       subscribeTips(tips => { setTipsState(tips); setLastSync(new Date()); }),
       subscribeState((checked, tripConfig) => {
         setCheckedState(checked);

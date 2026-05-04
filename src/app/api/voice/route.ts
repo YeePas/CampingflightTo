@@ -44,10 +44,16 @@ Output ALTIJD: { "name": "...", "category": "...", "tripTypes": [...], "mountain
 Regels:
 - name: naam van het item, met hoofdletter
 - category: kies uit: Kleding, Slaap, Keuken & Eten, Hygiëne, Kinderen, EHBO, Navigatie & Kaarten, Gereedschap, Bergen, Overig
-- tripTypes: array van "dag", "weekend", "week" — standaard alle drie tenzij anders gezegd
-  - "alleen dag" → ["dag"]
-  - "weekend+" of "dag+" → ["dag","weekend"]
-  - "week+" of "langer" → ["dag","weekend","week"]
+- tripTypes: array van een of meer van: "weekend", "week", "wandeldag", "wandeltrip"
+  Beschikbare trip types:
+    "weekend"    = korte kampeertocht (+1 nacht)
+    "week"       = lange kampeertocht (+7 nachten)
+    "wandeldag"  = dagwandeling zonder overnachting
+    "wandeltrip" = meerdaagse wandeltocht met overnachting
+  Standaard (niets specifieks gezegd) → ["weekend","week"]
+  "ook voor wandelen" → voeg "wandeldag" en/of "wandeltrip" toe
+  "alleen wandelen" → ["wandeldag","wandeltrip"]
+  "alleen weekje" of "lang" → ["week"]
 - mountains: true alleen als specifiek voor bergen/hiking
 - kids: true alleen als specifiek voor kinderen
 - quantity: hoeveelheid als string, leeg als niet gezegd

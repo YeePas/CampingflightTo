@@ -105,14 +105,14 @@ export default function TipsView({ tips, onAdd, onDelete, onEdit }: Props) {
 
               {isOpen && (
                 <div className="border-t border-stone-100 px-4 py-3">
-                  {tip.category === 'Knopen' && (
+                  {tip.category === 'Knopen' && tip.knotIcon && (
                     <a
-                      href={`https://www.google.com/search?q=${encodeURIComponent('site:knots3d.com ' + tip.title)}`}
+                      href={`https://knots3d.com/en/${tip.knotIcon}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 mb-3 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100"
                     >
-                      <span>🪢</span> Bekijk uitleg op knots3d.com
+                      <span>🪢</span> Bekijk 3D-animatie op knots3d.com
                       <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
                     </a>
                   )}
