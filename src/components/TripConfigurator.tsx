@@ -38,6 +38,7 @@ export default function TripConfigurator({ config, onChange, onReset, checkedCou
   const isHikingMode = config.type === 'wandeldag' || config.type === 'wandeltrip';
   const activeIndex = TRIP_TYPES.findIndex(t => t.value === config.type);
   const [weatherOpen, setWeatherOpen] = useState(!!config.weatherPlace);
+  const [dateOpen, setDateOpen] = useState(!!config.departureDate);
   const allPacked = totalCount > 0 && checkedCount === totalCount;
 
   const countdown = config.departureDate ? daysUntil(config.departureDate) : null;
@@ -111,18 +112,36 @@ export default function TripConfigurator({ config, onChange, onReset, checkedCou
       )}
 
       {/* Departure date */}
-      <div className="flex items-center gap-2 mt-3">
-        <span className="text-sm">📅</span>
-        <input
-          type="date"
-          value={config.departureDate ?? ''}
-          onChange={e => onChange({ ...config, departureDate: e.target.value || undefined })}
-          className="flex-1 border border-stone-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 text-stone-700"
-        />
-        {countdownInfo && (
-          <span className={`text-xs font-medium whitespace-nowrap ${countdownInfo.color}`}>
-            {countdownInfo.text}
-          </span>
+      <div className="mt-3">
+        {!dateOpen ? (
+          <button
+            onClick={() => setDateOpen(true)}
+            className="flex items-center gap-1.5 text-xs text-stone-400 hover:text-stone-600 transition-colors"
+          >
+            <span>📅</span> Vertrekdatum toevoegen
+          </button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span className="text-sm">📅</span>
+            <input
+              type="date"
+              value={config.departureDate ?? ''}
+              onChange={e => onChange({ ...config, departureDate: e.target.value || undefined })}
+              className="flex-1 border border-stone-200 rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 text-stone-700"
+            />
+            {countdownInfo ? (
+              <span className={`text-xs font-medium whitespace-nowrap ${countdownInfo.color}`}>
+                {countdownInfo.text}
+              </span>
+            ) : null}
+            <button
+              onClick={() => { setDateOpen(false); onChange({ ...config, departureDate: undefined }); }}
+              className="text-stone-300 hover:text-stone-500 text-lg leading-none px-1"
+              aria-label="Datum verbergen"
+            >
+              ×
+            </button>
+          </div>
         )}
       </div>
 

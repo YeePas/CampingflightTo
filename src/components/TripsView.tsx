@@ -291,6 +291,7 @@ function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<WishlistItem | null>(null);
   const [form, setForm] = useState(EMPTY_WISH);
+  const [showPicker, setShowPicker] = useState(false);
 
   const submit = () => {
     if (!form.name.trim()) return;
@@ -320,12 +321,19 @@ function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }
     setForm(EMPTY_WISH);
     setShowForm(false);
     setEditing(null);
+    setShowPicker(false);
   };
 
   const startEdit = (w: WishlistItem) => {
     setEditing(w);
     setForm({ name: w.name, address: w.address ?? '', tipFrom: w.tipFrom ?? '', notes: w.notes ?? '' });
     setShowForm(true);
+    setShowPicker(false);
+  };
+
+  const pickLocation = (l: CampingLocation) => {
+    setForm(prev => ({ ...prev, name: l.name, address: l.address ?? '' }));
+    setShowPicker(false);
   };
 
   const remove = (id: string) => {
@@ -359,6 +367,41 @@ function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }
       ) : (
         <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-4 space-y-2 mb-4">
           <h3 className="font-semibold text-stone-700 mb-1">{editing ? 'Wishlist-plek bewerken' : 'Nieuwe wishlist-plek'}</h3>
+
+          {/* Pick from existing campings */}
+          {locations.length > 0 && (
+            <div>
+              {!showPicker ? (
+                <button
+                  type="button"
+                  onClick={() => setShowPicker(true)}
+                  className="text-xs text-stone-400 hover:text-stone-600 transition-colors"
+                >
+                  📍 Kies een bestaande camping
+                </button>
+              ) : (
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <p className="text-xs font-medium text-stone-500">Selecteer een camping</p>
+                    <button onClick={() => setShowPicker(false)} className="text-stone-300 hover:text-stone-500 text-lg leading-none">×</button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+                    {locations.map(l => (
+                      <button
+                        key={l.id}
+                        type="button"
+                        onClick={() => pickLocation(l)}
+                        className="px-2.5 py-1 rounded-full text-xs font-medium border border-stone-200 bg-white text-stone-600 hover:border-green-400 hover:text-green-700 transition-all"
+                      >
+                        📍 {l.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <input
             type="text"
             placeholder="Naam (verplicht)"
@@ -391,7 +434,7 @@ function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }
             <button onClick={submit} className="flex-1 bg-green-600 text-white py-2 rounded-xl text-sm font-medium hover:bg-green-700">
               {editing ? 'Opslaan' : 'Toevoegen'}
             </button>
-            <button onClick={() => { setShowForm(false); setEditing(null); }} className="flex-1 bg-stone-100 text-stone-600 py-2 rounded-xl text-sm font-medium">
+            <button onClick={() => { setShowForm(false); setEditing(null); setShowPicker(false); }} className="flex-1 bg-stone-100 text-stone-600 py-2 rounded-xl text-sm font-medium">
               Annuleren
             </button>
           </div>
