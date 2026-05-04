@@ -37,16 +37,27 @@ export async function fetchItems(): Promise<ItemsDoc> {
   const deletedSet = new Set(deletedDefaultIds);
 
   // Migrate: sync tripTypes exactly for default items (adds new types AND removes removed ones)
+  // Also strip retired 'dag' type from ALL items (default and custom).
   let migrated = false;
   const migratedExisting = existing.map(item => {
     const def = DEFAULT_ITEMS.find(d => d.id === item.id);
-    if (!def) return item; // custom item — leave untouched
-    const currentTypes = item.tripTypes as string[];
-    const same = def.tripTypes.length === currentTypes.length &&
-                 def.tripTypes.every(t => currentTypes.includes(t));
-    if (same) return item;
-    migrated = true;
-    return { ...item, tripTypes: def.tripTypes };
+
+    if (def) {
+      // Default item — sync tripTypes exactly to current defaults
+      const currentTypes = item.tripTypes as string[];
+      const same = def.tripTypes.length === currentTypes.length &&
+                   def.tripTypes.every(t => currentTypes.includes(t));
+      if (!same) { migrated = true; return { ...item, tripTypes: def.tripTypes }; }
+      return item;
+    }
+
+    // Custom item — only strip retired 'dag' if present
+    if ((item.tripTypes as string[]).includes('dag')) {
+      migrated = true;
+      const without = (item.tripTypes as string[]).filter(t => t !== 'dag') as PackItem['tripTypes'];
+      return { ...item, tripTypes: without.length > 0 ? without : ['weekend' as const] };
+    }
+    return item;
   });
   const base = migrated ? migratedExisting : existing;
   const existingIds = new Set(base.map((i: PackItem) => i.id));
