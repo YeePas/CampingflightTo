@@ -259,7 +259,7 @@ export default function Home() {
         className="fixed inset-x-0 z-20 px-4 pointer-events-none"
         style={{ bottom: `calc(0.75rem + env(safe-area-inset-bottom))` }}
       >
-        <div className="max-w-md mx-auto bg-white/90 backdrop-blur-md rounded-full shadow-[0_8px_28px_rgba(0,0,0,0.12)] border border-stone-200/70 p-1.5 flex pointer-events-auto">
+        <div className="max-w-[25rem] mx-auto bg-white/90 backdrop-blur-md rounded-full shadow-[0_8px_28px_rgba(0,0,0,0.12)] border border-stone-200/70 p-1.5 flex pointer-events-auto">
           {TABS.map(tab => {
             const isActive = activeTab === tab.id;
             const Icon = tab.Icon;
