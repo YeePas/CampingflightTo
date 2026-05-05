@@ -101,18 +101,25 @@ export async function fetchTips(): Promise<Tip[]> {
   // Merge new default tips not yet in Firestore
   const missing = DEFAULT_TIPS.filter(t => !existingIds.has(t.id));
 
+  // Remove retired tips
+  const RETIRED_IDS = new Set(['t6']); // Kinderen motiveren
+
   // Backfill imageUrl, knotIcon and migrate retired categories
   let imagePatched = false;
-  const patched = existing.map(tip => {
-    const def = DEFAULT_TIPS.find(d => d.id === tip.id);
-    const updates: Partial<typeof tip> = {};
-    if (def?.imageUrl && !tip.imageUrl) updates.imageUrl = def.imageUrl;
-    if (def?.knotIcon && tip.knotIcon !== def.knotIcon) updates.knotIcon = def.knotIcon;
-    // Migrate retired 'Kinderen' category → 'Algemeen'
-    if ((tip.category as string) === 'Kinderen') updates.category = 'Algemeen';
-    if (Object.keys(updates).length > 0) { imagePatched = true; return { ...tip, ...updates }; }
-    return tip;
-  });
+  const patched = existing
+    .filter(tip => !RETIRED_IDS.has(tip.id))
+    .map(tip => {
+      const def = DEFAULT_TIPS.find(d => d.id === tip.id);
+      const updates: Partial<typeof tip> = {};
+      if (def?.imageUrl && !tip.imageUrl) updates.imageUrl = def.imageUrl;
+      if (def?.knotIcon && tip.knotIcon !== def.knotIcon) updates.knotIcon = def.knotIcon;
+      // Migrate retired categories
+      const cat = tip.category as string;
+      if (cat === 'Kinderen' || cat === 'Algemeen') updates.category = tip.id === 't7' ? 'Knopen' : 'Bergen';
+      if (cat === 'Veiligheid') updates.category = 'Bergen';
+      if (Object.keys(updates).length > 0) { imagePatched = true; return { ...tip, ...updates }; }
+      return tip;
+    });
 
   if (missing.length > 0 || imagePatched) {
     const merged = [...patched, ...missing];

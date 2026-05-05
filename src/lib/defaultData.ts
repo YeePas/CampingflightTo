@@ -158,21 +158,15 @@ export const DEFAULT_TIPS: Tip[] = [
     content: 'Boven 2500m:\n• Stijg niet meer dan 300-500m per dag in slaaphoogte\n• Drink veel water (3-4 liter per dag)\n• Eet koolhydraatrijk\n• Vermijd alcohol de eerste dagen\n• Bij hoofdpijn/misselijkheid: daal af en rust\n• Regel: "klimmen hoog, slapen laag"',
   },
   {
-    id: 't6',
-    title: 'Kinderen motiveren op lange wandelingen',
-    category: 'Algemeen',
-    content: 'Tips om kinderen wandelend te houden:\n• Geef ze een eigen kleine rugzak (met iets leuks erin)\n• Zoek naar dieren, insecten, paddenstoelen\n• Tellen: hoeveel bruggen, hekken, koeien?\n• Beloningssnoep op de top of halverwege\n• Splits de route in kleine stukjes: "nog 10 minuten dan stoppen we"\n• Laat ze de kaart vasthouden',
-  },
-  {
     id: 't7',
     title: 'Tarp spannen in regen',
-    category: 'Algemeen',
+    category: 'Knopen',
     content: 'Snel afdak met tarp:\n1. Zoek twee bomen op ~4m afstand\n2. Span een lijn tussen de bomen op ooghoogte\n3. Gooi de tarp over de lijn (asymmetrisch: meer aan één kant)\n4. Span de hoeken omlaag met haringen\n5. Trek de middenlijn strak\n\nTip: laat de voorkant hoger hangen dan de achterkant zodat regen wegglijdt.',
   },
   {
     id: 't8',
     title: 'Bliksemgevaar in de bergen',
-    category: 'Veiligheid',
+    category: 'Bergen',
     content: '30-30 regel:\n• Als de tijd tussen bliksem en donder < 30 sec: zoek beschutting\n• Wacht 30 min na de laatste donderslag\n\nWat te doen:\n• Dalen of afdalen van open plekken\n• Niet onder de hoogste boom\n• Niet bij water blijven\n• Hurk neer op geïsoleerde ondergrond (rugzak)\n• Vermijd metalen voorwerpen',
   },
   {
@@ -232,7 +226,7 @@ export const DEFAULT_TIPS: Tip[] = [
   {
     id: 't17',
     title: 'Onderkoeling herkennen',
-    category: 'Veiligheid',
+    category: 'Bergen',
     content: 'Onderkoeling sluipt erin. Letten op:\n\n**Mild (nog te helpen):**\n• Bibberen (oncontroleerbaar)\n• Onhandig, slordig spreken\n• Trage reacties\n\n**Ernstig (acute hulp nodig):**\n• Stopt met bibberen ondanks kou\n• Verwarring, irrationeel gedrag (mensen kleden zich soms uít)\n• Slaperigheid\n\n**Eerste hulp:**\n• Naar beschutte plek\n• Natte kleren uit, droge aan\n• In slaapzak met warm drinken (geen alcohol!)\n• Lichaam-aan-lichaam warmte als geen ander materiaal\n• NOOIT direct opwarmen (warme bad, kachel) — koud bloed naar hart = hartstilstand',
   },
 ];

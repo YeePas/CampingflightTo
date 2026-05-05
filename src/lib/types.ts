@@ -92,7 +92,5 @@ export const GROCERY_CATEGORIES = [
 export const TIP_CATEGORIES = [
   'Knopen',
   'Koken',
-  'Veiligheid',
   'Bergen',
-  'Algemeen',
 ] as const;

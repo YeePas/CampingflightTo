@@ -14,9 +14,7 @@ interface Props {
 const CATEGORY_EMOJI: Record<string, string> = {
   'Knopen': '🪢',
   'Koken': '🍳',
-  'Veiligheid': '⚠️',
   'Bergen': '⛰️',
-  'Algemeen': '💡',
 };
 
 const EMPTY_FORM = { title: '', content: '', category: 'Algemeen', imageUrl: '' };
