@@ -170,7 +170,84 @@ export const DEFAULT_TIPS: Tip[] = [
     id: 't8',
     title: 'Bliksemgevaar in de bergen',
     category: 'Bergen',
-    content: '30-30 regel:\n• Als de tijd tussen bliksem en donder < 30 sec: zoek beschutting\n• Wacht 30 min na de laatste donderslag\n\nWat te doen:\n• Dalen of afdalen van open plekken\n• Niet onder de hoogste boom\n• Niet bij water blijven\n• Hurk neer op geïsoleerde ondergrond (rugzak)\n• Vermijd metalen voorwerpen',
+    content: `VROEGE WAARSCHUWINGSSIGNALEN
+——————————————————
+• Stapelwolken (cumulonimbus) die 's ochtends snel verticaal groeien → onweer 's middags
+• Donkere, paarse of groene wolkenkleur aan de horizon
+• Plotselinge windstilte gevolgd door koude windstoot
+• Statische elektriciteit: haar gaat overeind staan, tintelen op huid of metaal
+• Zoemend of knetterend geluid in metalen uitrusting (ijsbijl, stokken, frame) → GEVAAR, direct handelen
+• Snelle drukval: oren ploppen, hoofdpijn
+• Vuistregel Alpen: vóór 14:00 op de top, vóór 16:00 in het dal
+
+30-30 REGEL
+——————————————————
+1. Tel de seconden tussen bliksem en donder
+2. Minder dan 30 seconden (= minder dan 10 km) → direct beschutting zoeken
+3. Na de laatste donderslag: wacht minimaal 30 minuten voor je verder gaat
+4. Onweer verplaatst zich 1-2 km per minuut — het kan snel dichterbij komen
+
+STAP 1 — STOP MET KLIMMEN, DAAL AF
+——————————————————
+• Verlaat toppen, bergkammen en richels onmiddellijk — dit zijn bliksemafleiders
+• Daal naar een lager niveau, minstens 50-100 m onder de top
+• Mijdt open vlaktes, sneeuwvelden en gletsjers
+• Loop niet onder geïsoleerde bomen (hoogste object = meest aangetrokken)
+• Vermijd grotten en rotsoversteken — stroomgeleiding via vochtig gesteente
+
+STAP 2 — ZOEK EEN VEILIGE POSITIE
+——————————————————
+Beste plek:
+• Lager gelegen, dicht bos met laag en gelijkmatig geboomte
+• Natuurlijke kom of dal, minstens 30 m van de boomkronen
+• Droge rotsgroep met lage, gelijke hoogte (geen uitstekende punten)
+
+Slechte plekken (vermijd):
+• Bergruggen, toppen, open vlaktes
+• Geïsoleerde hoge bomen of rotsen
+• Bij water: meren, rivieren, watervallenrichels
+• Metalen constructies, hekken, pylonen
+• Grotten (ingang geleidt stroom)
+
+STAP 3 — DE BLIKSEMHOUDING
+——————————————————
+Als je geen schuilplaats kunt bereiken:
+1. Leg alle metalen spullen neer en GA ER 10 m VAN AF (ijsbijl, stokken, frame rugzak)
+2. Rugzak als isolerende onderlaag neerleggen
+3. Hurk neer op de rugzak met voeten bij elkaar
+4. Handen op knieën, hoofd omlaag — maak jezelf zo klein mogelijk
+5. Geen contact met de grond maken met handen of ellebogen (stapstroom!)
+6. Draag GEEN koptelefoon of oordopjes
+7. Liggen op de grond is GEVAARLIJKER — meer contactoppervlak voor stapstroom
+
+In een groep:
+• Spreid de groep — minstens 15-20 m tussen personen
+• Nooit dicht bij elkaar hurken (één inslag treft dan iedereen)
+• Wijs één persoon aan buiten gevaarzone om hulp te bellen
+
+STAP 4 — ALS IEMAND GETROFFEN WORDT
+——————————————————
+• Bliksemslachtoffers zijn NIET onder stroom — veilig om aan te raken
+• Check bewustzijn: roep, tik op schouder
+• Geen ademhaling/hartslag → start direct CPR (30 borstcompressies, 2 beademingen)
+• Bel 112 — geef GPS-coördinaten (sla locatie op in kaart-app)
+• Behandel voor shock: dek toe, warmte vasthouden
+• Let op: secundaire verwondingen (val, brandwonden) kunnen ook aanwezig zijn
+
+NACHTKAMP BIJ ONWEER
+——————————————————
+• Slaap niet op bergkam of open vlakte
+• Tent bevat metalen stokken — geen ideale plek tijdens actief onweer
+• Verlaat de tent bij naderende bliksem, zoek lager terrein
+• Draag geen vochtige kleding — geleidt stroom beter
+• Isoleer slaapmatje/slaapzak van tentbodem als je moet blijven
+
+PREVENTIE — PLAN JE ROUTE
+——————————————————
+• Check weersvoorspelling elke ochtend (open-meteo, meteoblue, chamonix-meteo)
+• Onweer-apps: Lightningmaps.org (realtime), ESTOFEX (Europese onweersverwachting)
+• Plan afdaling vóór het middaguur op onzekere dagen
+• Vertel je route + verwachte terugkomsttijd altijd aan iemand`,
   },
   {
     id: 't11',
