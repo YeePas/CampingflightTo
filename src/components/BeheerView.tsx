@@ -310,6 +310,7 @@ export default function BeheerView({ items, onAdd, onDelete, onEdit }: Props) {
             <SwipeableRow
               key={item.id}
               onDelete={() => onDelete(item.id)}
+              onEdit={() => startEdit(item)}
               className="rounded-xl border border-stone-200 bg-white"
             >
               <div className="bg-white rounded-xl px-4 py-3 flex items-start justify-between gap-2">

@@ -207,6 +207,7 @@ function LocationsList({ locations, setLocations, onUndo }: Props) {
             <SwipeableRow
               key={l.id}
               onDelete={() => remove(l.id)}
+              onEdit={() => startEdit(l)}
               className="bg-white rounded-xl border border-stone-200 overflow-hidden"
             >
               <div className="bg-white">
@@ -463,6 +464,7 @@ function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }
           <SwipeableRow
             key={w.id}
             onDelete={() => remove(w.id)}
+            onEdit={() => startEdit(w)}
             className="bg-white rounded-xl border border-stone-200 overflow-hidden"
           >
             <div className="bg-white px-4 py-3 flex items-center gap-3">

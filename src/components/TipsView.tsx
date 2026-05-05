@@ -109,17 +109,22 @@ export default function TipsView({ tips, onAdd, onDelete, onEdit }: Props) {
 
               {isOpen && (
                 <div className="border-t border-stone-100 px-4 py-3">
-                  {tip.category === 'Knopen' && tip.knotIcon && (
-                    <a
-                      href={`https://knots3d.com/en/${tip.knotIcon}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 mb-3 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100"
-                    >
-                      <span>🪢</span> Bekijk 3D-animatie op knots3d.com
-                      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
-                    </a>
-                  )}
+                  {tip.category === 'Knopen' && tip.knotIcon && (() => {
+                    const href = tip.linkUrl ?? `https://knots3d.com/en/${tip.knotIcon}`;
+                    const isAnimated = href.includes('animatedknots.com');
+                    const label = isAnimated ? 'Bekijk animatie op animatedknots.com' : 'Bekijk 3D-animatie op knots3d.com';
+                    return (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 mb-3 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100"
+                      >
+                        <span>🪢</span> {label}
+                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>
+                      </a>
+                    );
+                  })()}
                   {tip.imageUrl && (
                     <img
                       src={tip.imageUrl}

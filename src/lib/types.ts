@@ -31,6 +31,7 @@ export interface Tip {
   category: string;
   imageUrl?: string;
   knotIcon?: string;
+  linkUrl?: string; // override for the 3D animation link (defaults to knots3d.com)
 }
 
 export const CATEGORIES = [

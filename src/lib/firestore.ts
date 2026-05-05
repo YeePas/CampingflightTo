@@ -111,8 +111,10 @@ export async function fetchTips(): Promise<Tip[]> {
     .map(tip => {
       const def = DEFAULT_TIPS.find(d => d.id === tip.id);
       const updates: Partial<typeof tip> = {};
-      if (def?.imageUrl && !tip.imageUrl) updates.imageUrl = def.imageUrl;
+      // Always sync these fields from defaults so edits to defaultData propagate
+      if (def?.imageUrl && tip.imageUrl !== def.imageUrl) updates.imageUrl = def.imageUrl;
       if (def?.knotIcon && tip.knotIcon !== def.knotIcon) updates.knotIcon = def.knotIcon;
+      if (def?.linkUrl !== undefined && tip.linkUrl !== def.linkUrl) updates.linkUrl = def.linkUrl;
       // Migrate retired categories
       const cat = tip.category as string;
       if (cat === 'Kinderen' || cat === 'Algemeen') updates.category = tip.id === 't7' ? 'Knopen' : 'Bergen';
