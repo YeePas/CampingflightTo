@@ -1,6 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+interface Props {
+  savedMountains: string[];
+  onSave: (name: string) => void;
+  onRemove: (name: string) => void;
+}
 
 interface Coords { lat: number; lng: number; displayName: string; }
 
@@ -53,7 +59,10 @@ function uvLabel(uv: number): { text: string; color: string } {
 }
 
 const NL_DAY = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
-const todayStr = () => new Date().toISOString().slice(0, 10);
+const todayStr = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
 function localTime(isoUtc: string): string {
   return new Date(isoUtc).toLocaleTimeString('nl-NL', {
@@ -61,7 +70,7 @@ function localTime(isoUtc: string): string {
   });
 }
 
-export default function MountainView() {
+export default function MountainView({ savedMountains, onSave, onRemove }: Props) {
   const [input, setInput]     = useState('');
   const [coords, setCoords]   = useState<Coords | null>(null);
   const [loading, setLoading] = useState(false);
@@ -70,8 +79,18 @@ export default function MountainView() {
   const [huts, setHuts]       = useState<Hut[]>([]);
   const [sun, setSun]         = useState<SunInfo | null>(null);
 
-  const search = async () => {
-    const trimmed = input.trim();
+  const isSaved = coords ? savedMountains.includes(coords.displayName) : false;
+
+  const runSearch = async (term: string) => {
+    setInput(term);
+    await search(term);
+  };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { /* no auto-load on mount */ }, []);
+
+  const search = async (overrideInput?: string) => {
+    const trimmed = (overrideInput ?? input).trim();
     if (!trimmed) return;
     setLoading(true);
     setNotFound(false);
@@ -81,7 +100,6 @@ export default function MountainView() {
     setCoords(null);
 
     try {
-      // Geocode via Open-Meteo (same as WeatherWidget)
       const geoRes  = await fetch(
         `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(trimmed)}&count=1&language=nl`
       );
@@ -191,6 +209,29 @@ export default function MountainView() {
 
   return (
     <div>
+      {/* Saved areas */}
+      {savedMountains.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {savedMountains.map(m => (
+            <div key={m} className="flex items-center gap-1 bg-stone-100 rounded-full pl-2.5 pr-1 py-1">
+              <button
+                onClick={() => runSearch(m)}
+                className="text-xs font-medium text-stone-600 hover:text-green-700 transition-colors"
+              >
+                ⛰️ {m}
+              </button>
+              <button
+                onClick={() => onRemove(m)}
+                className="text-stone-400 hover:text-red-400 text-sm leading-none px-0.5"
+                aria-label="Verwijder"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Search bar */}
       <div className="flex gap-2 mb-4">
         <input
@@ -198,11 +239,11 @@ export default function MountainView() {
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && search()}
-          placeholder="Berggebied (bijv. Écrins, Dolomiten, Arles)"
+          placeholder="Berggebied (bijv. Écrins, Dolomiten, Monviso)"
           className="flex-1 border border-stone-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
         />
         <button
-          onClick={search}
+          onClick={() => search()}
           disabled={loading}
           className="px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
         >
@@ -215,9 +256,21 @@ export default function MountainView() {
       )}
 
       {coords && (
-        <p className="text-xs text-stone-400 mb-3">
-          📍 {coords.displayName} &nbsp;·&nbsp; {coords.lat.toFixed(3)}°N {coords.lng.toFixed(3)}°O
-        </p>
+        <div className="flex items-center gap-2 mb-3">
+          <p className="text-xs text-stone-400 flex-1">
+            📍 {coords.displayName} &nbsp;·&nbsp; {coords.lat.toFixed(3)}°N {coords.lng.toFixed(3)}°O
+          </p>
+          <button
+            onClick={() => isSaved ? onRemove(coords.displayName) : onSave(coords.displayName)}
+            className={`text-xs px-2.5 py-1 rounded-full border font-medium transition-all ${
+              isSaved
+                ? 'bg-green-50 border-green-300 text-green-700 hover:bg-red-50 hover:border-red-300 hover:text-red-600'
+                : 'bg-white border-stone-200 text-stone-500 hover:border-green-400 hover:text-green-600'
+            }`}
+          >
+            {isSaved ? '✓ Opgeslagen' : '+ Opslaan'}
+          </button>
+        </div>
       )}
 
       {/* Sunrise / sunset */}

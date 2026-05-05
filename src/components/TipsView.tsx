@@ -15,7 +15,6 @@ const CATEGORY_EMOJI: Record<string, string> = {
   'Knopen': '🪢',
   'Koken': '🍳',
   'Veiligheid': '⚠️',
-  'Kinderen': '🧒',
   'Bergen': '⛰️',
   'Algemeen': '💡',
 };

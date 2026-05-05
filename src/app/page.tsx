@@ -260,6 +260,15 @@ export default function Home() {
             wishlist={s.wishlist}
             setWishlist={s.setWishlist}
             onUndo={arm}
+            savedMountains={s.tripConfig.savedMountains ?? []}
+            onSaveMountain={name => s.setTripConfig({
+              ...s.tripConfig,
+              savedMountains: [...(s.tripConfig.savedMountains ?? []).filter(m => m !== name), name],
+            })}
+            onRemoveMountain={name => s.setTripConfig({
+              ...s.tripConfig,
+              savedMountains: (s.tripConfig.savedMountains ?? []).filter(m => m !== name),
+            })}
           />
         )}
 

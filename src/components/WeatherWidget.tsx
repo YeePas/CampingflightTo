@@ -21,7 +21,10 @@ function wIcon(code: number): string {
 }
 
 const NL_DAY = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
-const todayStr = () => new Date().toISOString().slice(0, 10);
+const todayStr = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
 
 export default function WeatherWidget({ place }: { place: string }) {
   const [days, setDays] = useState<WeatherDay[]>([]);

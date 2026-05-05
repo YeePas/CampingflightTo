@@ -14,6 +14,9 @@ interface Props {
   wishlist: WishlistItem[];
   setWishlist: (updater: Updater<WishlistItem[]>) => void;
   onUndo?: (label: string, restore: () => void) => void;
+  savedMountains: string[];
+  onSaveMountain: (name: string) => void;
+  onRemoveMountain: (name: string) => void;
 }
 
 type SubTab = 'plekken' | 'wishlist' | 'bergtrip';
@@ -53,7 +56,13 @@ export default function TripsView(props: Props) {
 
       {sub === 'plekken'  && <LocationsList {...props} />}
       {sub === 'wishlist' && <WishlistList {...props} />}
-      {sub === 'bergtrip' && <MountainView />}
+      {sub === 'bergtrip' && (
+        <MountainView
+          savedMountains={props.savedMountains}
+          onSave={props.onSaveMountain}
+          onRemove={props.onRemoveMountain}
+        />
+      )}
     </div>
   );
 }

@@ -101,14 +101,15 @@ export async function fetchTips(): Promise<Tip[]> {
   // Merge new default tips not yet in Firestore
   const missing = DEFAULT_TIPS.filter(t => !existingIds.has(t.id));
 
-  // Backfill imageUrl and knotIcon from defaults onto existing tips
+  // Backfill imageUrl, knotIcon and migrate retired categories
   let imagePatched = false;
   const patched = existing.map(tip => {
     const def = DEFAULT_TIPS.find(d => d.id === tip.id);
-    if (!def) return tip;
     const updates: Partial<typeof tip> = {};
-    if (def.imageUrl && !tip.imageUrl) updates.imageUrl = def.imageUrl;
-    if (def.knotIcon && tip.knotIcon !== def.knotIcon) updates.knotIcon = def.knotIcon;
+    if (def?.imageUrl && !tip.imageUrl) updates.imageUrl = def.imageUrl;
+    if (def?.knotIcon && tip.knotIcon !== def.knotIcon) updates.knotIcon = def.knotIcon;
+    // Migrate retired 'Kinderen' category → 'Algemeen'
+    if ((tip.category as string) === 'Kinderen') updates.category = 'Algemeen';
     if (Object.keys(updates).length > 0) { imagePatched = true; return { ...tip, ...updates }; }
     return tip;
   });
@@ -160,6 +161,7 @@ export async function saveTripConfig(tripConfig: TripConfig): Promise<void> {
     kids: tripConfig.kids,
     ...(tripConfig.departureDate ? { departureDate: tripConfig.departureDate } : {}),
     ...(tripConfig.weatherPlace  ? { weatherPlace:  tripConfig.weatherPlace  } : {}),
+    ...(tripConfig.savedMountains?.length ? { savedMountains: tripConfig.savedMountains } : {}),
   };
   await setDoc(REF.state(), { tripConfig: clean }, { merge: true });
 }

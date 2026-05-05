@@ -160,7 +160,7 @@ export const DEFAULT_TIPS: Tip[] = [
   {
     id: 't6',
     title: 'Kinderen motiveren op lange wandelingen',
-    category: 'Kinderen',
+    category: 'Algemeen',
     content: 'Tips om kinderen wandelend te houden:\n• Geef ze een eigen kleine rugzak (met iets leuks erin)\n• Zoek naar dieren, insecten, paddenstoelen\n• Tellen: hoeveel bruggen, hekken, koeien?\n• Beloningssnoep op de top of halverwege\n• Splits de route in kleine stukjes: "nog 10 minuten dan stoppen we"\n• Laat ze de kaart vasthouden',
   },
   {
