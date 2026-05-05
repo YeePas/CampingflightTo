@@ -64,29 +64,26 @@ export default function TipsView({ tips, onAdd, onDelete, onEdit }: Props) {
 
   return (
     <div>
-      {/* Category filter — sliding segmented control */}
-      <div className="relative mb-4 overflow-x-auto scrollbar-hide">
-        <div className="flex bg-stone-200/60 rounded-xl p-1 w-max min-w-full">
-          {/* Sliding pill */}
-          <div
-            className="absolute top-1 bottom-1 bg-white rounded-lg shadow-sm transition-all duration-200 ease-out pointer-events-none"
-            style={{
-              left:  `calc(${catIndex} * (100% / ${categories.length}) + 0.25rem)`,
-              width: `calc(100% / ${categories.length} - 0.5rem)`,
-            }}
-          />
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`relative flex-1 whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-200 ${
-                activeCategory === cat ? 'text-stone-800' : 'text-stone-500'
-              }`}
-            >
-              {cat !== 'Alle' && CATEGORY_EMOJI[cat]} {cat}
-            </button>
-          ))}
-        </div>
+      {/* Category filter — sliding segmented control (same pattern as TripsView) */}
+      <div className="relative flex bg-stone-200/60 rounded-xl p-1 mb-4">
+        <div
+          className="absolute top-1 bottom-1 bg-white rounded-lg shadow-sm transition-all duration-200 ease-out pointer-events-none"
+          style={{
+            left:  `calc(${catIndex} * (100% / ${categories.length}) + 0.25rem)`,
+            width: `calc(100% / ${categories.length} - 0.5rem)`,
+          }}
+        />
+        {categories.map(cat => (
+          <button
+            key={cat}
+            onClick={() => setActiveCategory(cat)}
+            className={`relative flex-1 py-1.5 rounded-lg text-[10px] font-semibold transition-colors duration-200 truncate px-0.5 ${
+              activeCategory === cat ? 'text-stone-800' : 'text-stone-500'
+            }`}
+          >
+            {cat !== 'Alle' ? `${CATEGORY_EMOJI[cat]} ${cat}` : cat}
+          </button>
+        ))}
       </div>
 
       {/* Tips list */}
