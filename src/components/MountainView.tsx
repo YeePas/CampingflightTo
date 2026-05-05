@@ -123,25 +123,31 @@ export default function MountainView({ savedMountains, onSave, onRemove }: Props
   };
 
   const fetchWeather = async (lat: number, lng: number) => {
+    const today = todayStr();
     const url =
       `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}` +
       `&daily=weathercode,temperature_2m_max,temperature_2m_min,windspeed_10m_max,uv_index_max,precipitation_sum,snowfall_sum` +
       `&hourly=freezing_level_height` +
-      `&forecast_days=5&timezone=Europe%2FAmsterdam`;
+      `&forecast_days=7&timezone=Europe%2FAmsterdam`; // fetch 7, then slice from today
     const data = await (await fetch(url)).json();
     const d = data.daily;
     const freezingHourly: number[] = data.hourly.freezing_level_height;
-    setWeather(d.time.map((date: string, i: number) => ({
-      date,
-      code:     d.weathercode[i],
-      tMax:     Math.round(d.temperature_2m_max[i]),
-      tMin:     Math.round(d.temperature_2m_min[i]),
-      windMax:  Math.round(d.windspeed_10m_max[i]),
-      uvMax:    Math.round(d.uv_index_max[i] ?? 0),
-      precip:   Math.round((d.precipitation_sum[i] ?? 0) * 10) / 10,
-      snowfall: Math.round((d.snowfall_sum[i] ?? 0) * 10) / 10,
-      freezing: Math.round(freezingHourly[i * 24 + 12] ?? 0), // noon value
-    })));
+    setWeather(
+      (d.time as string[])
+        .map((date: string, i: number) => ({
+          date,
+          code:     d.weathercode[i],
+          tMax:     Math.round(d.temperature_2m_max[i]),
+          tMin:     Math.round(d.temperature_2m_min[i]),
+          windMax:  Math.round(d.windspeed_10m_max[i]),
+          uvMax:    Math.round(d.uv_index_max[i] ?? 0),
+          precip:   Math.round((d.precipitation_sum[i] ?? 0) * 10) / 10,
+          snowfall: Math.round((d.snowfall_sum[i] ?? 0) * 10) / 10,
+          freezing: Math.round(freezingHourly[i * 24 + 12] ?? 0),
+        }))
+        .filter(day => day.date >= today) // strip any days before today
+        .slice(0, 5)                       // keep 5 days from today
+    );
   };
 
   const fetchHuts = async (lat: number, lng: number) => {

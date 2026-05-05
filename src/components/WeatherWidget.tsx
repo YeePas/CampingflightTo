@@ -52,17 +52,23 @@ export default function WeatherWidget({ place }: { place: string }) {
         const wxRes = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}` +
           `&daily=weathercode,temperature_2m_max,temperature_2m_min` +
-          `&forecast_days=3&timezone=Europe%2FAmsterdam`
+          `&forecast_days=5&timezone=Europe%2FAmsterdam`
         );
         const wxData = await wxRes.json();
         if (!cancelled) {
           const { time, weathercode, temperature_2m_max, temperature_2m_min } = wxData.daily;
-          setDays(time.map((date: string, i: number) => ({
-            date,
-            code: weathercode[i],
-            tMax: Math.round(temperature_2m_max[i]),
-            tMin: Math.round(temperature_2m_min[i]),
-          })));
+          const today = todayStr();
+          setDays(
+            (time as string[])
+              .map((date: string, i: number) => ({
+                date,
+                code: weathercode[i],
+                tMax: Math.round(temperature_2m_max[i]),
+                tMin: Math.round(temperature_2m_min[i]),
+              }))
+              .filter(d => d.date >= today)
+              .slice(0, 3)
+          );
           setStatus('idle');
         }
       } catch {
