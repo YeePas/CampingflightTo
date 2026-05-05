@@ -15,7 +15,88 @@ const REF = {
   wishlist: () => doc(db, 'camping', 'wishlist'),
 };
 
-// --- Items ---
+// =============================================================================
+// Generic default-sync helper
+// =============================================================================
+//
+// THE RULE: defaultData.ts is the single source of truth for default items/tips.
+// Whatever fields you put on a default in code, will be in Firestore on next load.
+//
+// - Default items (id matches a default): code is authoritative for ALL fields,
+//   except `preserveFields` which keep their user value (e.g. notes / quantity).
+// - Custom items (user-created, id not in defaults): never touched.
+// - Defaults the user explicitly deleted (in `deletedDefaultIds`) stay deleted.
+//
+// This avoids the recurring bug of having to add a per-field migration line for
+// every new property added to defaultData.
+//
+function syncDefaults<T extends { id: string }>(opts: {
+  existing: T[];
+  defaults: T[];
+  deletedDefaultIds: string[];
+  preserveFields?: (keyof T)[];
+}): { merged: T[]; changed: boolean } {
+  const { existing, defaults, deletedDefaultIds, preserveFields = [] } = opts;
+  const defaultIds = new Set(defaults.map(d => d.id));
+  const deletedSet = new Set(deletedDefaultIds);
+  const existingMap = new Map(existing.map(e => [e.id, e]));
+
+  let changed = false;
+  const result: T[] = [];
+
+  // 1. Defaults — keep them in defaultData order, code wins on every field
+  for (const def of defaults) {
+    if (deletedSet.has(def.id)) continue;
+    const cur = existingMap.get(def.id);
+
+    if (!cur) {
+      result.push(def);
+      changed = true;
+      continue;
+    }
+
+    const overlay: Partial<T> = {};
+    for (const field of preserveFields) {
+      const v = cur[field];
+      if (v !== undefined) overlay[field] = v;
+    }
+    const merged = { ...def, ...overlay };
+
+    if (!shallowEqual(merged, cur)) {
+      result.push(merged);
+      changed = true;
+    } else {
+      result.push(cur);
+    }
+  }
+
+  // 2. Custom items at the end — left alone
+  for (const item of existing) {
+    if (!defaultIds.has(item.id)) result.push(item);
+  }
+
+  return { merged: result, changed };
+}
+
+function shallowEqual<T extends object>(a: T, b: T): boolean {
+  const ak = Object.keys(a) as (keyof T)[];
+  const bk = Object.keys(b) as (keyof T)[];
+  if (ak.length !== bk.length) return false;
+  for (const k of ak) {
+    const av = a[k], bv = b[k];
+    if (Array.isArray(av) && Array.isArray(bv)) {
+      if (av.length !== bv.length) return false;
+      for (let i = 0; i < av.length; i++) if (av[i] !== bv[i]) return false;
+    } else if (av !== bv) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// =============================================================================
+// Items
+// =============================================================================
 
 export interface ItemsDoc {
   items: PackItem[];
@@ -34,44 +115,31 @@ export async function fetchItems(): Promise<ItemsDoc> {
 
   const existing = snap.data().items as PackItem[];
   const deletedDefaultIds: string[] = snap.data().deletedDefaultIds ?? [];
-  const deletedSet = new Set(deletedDefaultIds);
 
-  // Migrate: sync tripTypes exactly for default items (adds new types AND removes removed ones)
-  // Also strip retired 'dag' type from ALL items (default and custom).
-  let migrated = false;
-  const migratedExisting = existing.map(item => {
-    const def = DEFAULT_ITEMS.find(d => d.id === item.id);
-
-    if (def) {
-      // Default item — sync tripTypes exactly to current defaults
-      const currentTypes = item.tripTypes as string[];
-      const same = def.tripTypes.length === currentTypes.length &&
-                   def.tripTypes.every(t => currentTypes.includes(t));
-      if (!same) { migrated = true; return { ...item, tripTypes: def.tripTypes }; }
-      return item;
-    }
-
-    // Custom item — only strip retired 'dag' if present (old Firestore data)
-    if ((item.tripTypes as string[]).includes('dag')) {
-      migrated = true;
-      const without = (item.tripTypes as string[]).filter(t => t !== 'dag') as PackItem['tripTypes'];
+  // Strip retired 'dag' tripType (legacy data)
+  let stripped = false;
+  const cleaned = existing.map(item => {
+    const types = item.tripTypes as string[];
+    if (types.includes('dag')) {
+      stripped = true;
+      const without = types.filter(t => t !== 'dag') as PackItem['tripTypes'];
       return { ...item, tripTypes: without.length > 0 ? without : ['weekend' as const] };
     }
     return item;
   });
-  const base = migrated ? migratedExisting : existing;
-  const existingIds = new Set(base.map((i: PackItem) => i.id));
 
-  // Merge new defaults that are not yet in the list AND not deliberately deleted
-  const missing = DEFAULT_ITEMS.filter(i => !existingIds.has(i.id) && !deletedSet.has(i.id));
+  // User can add `quantity` and `notes` to a default item — preserve those across syncs
+  const { merged, changed } = syncDefaults({
+    existing: cleaned,
+    defaults: DEFAULT_ITEMS,
+    deletedDefaultIds,
+    preserveFields: ['quantity', 'notes'],
+  });
 
-  if (missing.length > 0 || migrated) {
-    const merged = [...base, ...missing];
+  if (changed || stripped) {
     await setDoc(REF.items(), { items: merged, deletedDefaultIds });
-    return { items: merged, deletedDefaultIds };
   }
-
-  return { items: existing, deletedDefaultIds };
+  return { items: merged, deletedDefaultIds };
 }
 
 export async function saveItems(items: PackItem[], deletedDefaultIds: string[]): Promise<void> {
@@ -87,62 +155,89 @@ export function subscribeItems(cb: (items: PackItem[], deletedDefaultIds: string
   });
 }
 
-// --- Tips ---
+// =============================================================================
+// Tips
+// =============================================================================
 
-export async function fetchTips(): Promise<Tip[]> {
+export interface TipsDoc {
+  tips: Tip[];
+  deletedDefaultIds: string[];
+}
+
+// Tip IDs that should be removed entirely (was a default, now deprecated)
+const RETIRED_TIP_IDS = new Set(['t6']); // Kinderen motiveren
+
+export async function fetchTips(): Promise<TipsDoc> {
   const snap = await getDoc(REF.tips());
+
   if (!snap.exists()) {
-    await setDoc(REF.tips(), { tips: DEFAULT_TIPS });
-    return DEFAULT_TIPS;
+    const doc: TipsDoc = { tips: DEFAULT_TIPS, deletedDefaultIds: [] };
+    await setDoc(REF.tips(), doc);
+    return doc;
   }
-  const existing = snap.data().tips as Tip[];
-  const existingIds = new Set(existing.map(t => t.id));
 
-  // Merge new default tips not yet in Firestore
-  const missing = DEFAULT_TIPS.filter(t => !existingIds.has(t.id));
+  const existing = (snap.data().tips ?? []) as Tip[];
+  let deletedDefaultIds: string[] = snap.data().deletedDefaultIds ?? [];
 
-  // Remove retired tips
-  const RETIRED_IDS = new Set(['t6']); // Kinderen motiveren
+  // First-time migration: if doc has no deletedDefaultIds field, infer it from
+  // which defaults are missing (so prior user-deletions aren't undone)
+  let firstTimeDeletionMigration = false;
+  if (snap.data().deletedDefaultIds === undefined) {
+    const presentIds = new Set(existing.map(t => t.id));
+    deletedDefaultIds = DEFAULT_TIPS
+      .filter(d => !presentIds.has(d.id) && !RETIRED_TIP_IDS.has(d.id))
+      .map(d => d.id);
+    firstTimeDeletionMigration = true;
+  }
 
-  // Backfill imageUrl, knotIcon and migrate retired categories
-  let imagePatched = false;
-  const patched = existing
-    .filter(tip => !RETIRED_IDS.has(tip.id))
+  // Drop retired tips and migrate retired categories on custom tips
+  let cleanedChanged = false;
+  const cleaned = existing
+    .filter(t => {
+      if (RETIRED_TIP_IDS.has(t.id)) { cleanedChanged = true; return false; }
+      return true;
+    })
     .map(tip => {
-      const def = DEFAULT_TIPS.find(d => d.id === tip.id);
-      const updates: Partial<typeof tip> = {};
-      // Always sync these fields from defaults so edits to defaultData propagate
-      if (def?.content && tip.content !== def.content) updates.content = def.content;
-      if (def?.imageUrl && tip.imageUrl !== def.imageUrl) updates.imageUrl = def.imageUrl;
-      if (def?.knotIcon && tip.knotIcon !== def.knotIcon) updates.knotIcon = def.knotIcon;
-      if (def?.linkUrl !== undefined && tip.linkUrl !== def.linkUrl) updates.linkUrl = def.linkUrl;
-      // Migrate retired categories
       const cat = tip.category as string;
-      if (cat === 'Kinderen' || cat === 'Algemeen') updates.category = tip.id === 't7' ? 'Knopen' : 'Bergen';
-      if (cat === 'Veiligheid') updates.category = 'Bergen';
-      if (Object.keys(updates).length > 0) { imagePatched = true; return { ...tip, ...updates }; }
+      if (cat === 'Kinderen' || cat === 'Algemeen') {
+        cleanedChanged = true;
+        return { ...tip, category: tip.id === 't7' ? 'Knopen' : 'Bergen' };
+      }
+      if (cat === 'Veiligheid') {
+        cleanedChanged = true;
+        return { ...tip, category: 'Bergen' };
+      }
       return tip;
     });
 
-  if (missing.length > 0 || imagePatched) {
-    const merged = [...patched, ...missing];
-    await setDoc(REF.tips(), { tips: merged });
-    return merged;
+  const { merged, changed } = syncDefaults({
+    existing: cleaned,
+    defaults: DEFAULT_TIPS,
+    deletedDefaultIds,
+  });
+
+  if (changed || cleanedChanged || firstTimeDeletionMigration) {
+    await setDoc(REF.tips(), { tips: merged, deletedDefaultIds });
   }
-  return existing;
+  return { tips: merged, deletedDefaultIds };
 }
 
-export async function saveTips(tips: Tip[]): Promise<void> {
-  await setDoc(REF.tips(), { tips });
+export async function saveTips(tips: Tip[], deletedDefaultIds: string[]): Promise<void> {
+  await setDoc(REF.tips(), { tips, deletedDefaultIds });
 }
 
-export function subscribeTips(cb: (tips: Tip[]) => void): () => void {
+export function subscribeTips(cb: (tips: Tip[], deletedDefaultIds: string[]) => void): () => void {
   return onSnapshot(REF.tips(), snap => {
-    if (snap.exists()) cb(snap.data().tips as Tip[]);
+    if (snap.exists()) cb(
+      (snap.data().tips ?? []) as Tip[],
+      snap.data().deletedDefaultIds ?? [],
+    );
   });
 }
 
-// --- State (checked + tripConfig) ---
+// =============================================================================
+// State (checked + tripConfig)
+// =============================================================================
 
 export async function fetchState(): Promise<{ checked: CheckedItems; tripConfig: TripConfig }> {
   const snap = await getDoc(REF.state());
@@ -185,7 +280,9 @@ export function subscribeState(cb: (checked: CheckedItems, tripConfig: TripConfi
   });
 }
 
-// --- Generic helpers for new collections ---
+// =============================================================================
+// Generic helpers for plain list collections (no defaults)
+// =============================================================================
 
 async function fetchList<T>(ref: ReturnType<typeof REF.groceries>, key: string, fallback: T[] = []): Promise<T[]> {
   const snap = await getDoc(ref);

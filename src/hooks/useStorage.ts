@@ -5,7 +5,7 @@ import {
   PackItem, Tip, CheckedItems, TripConfig,
   GroceryItem, CampingLocation, WishlistItem,
 } from '@/lib/types';
-import { DEFAULT_ITEMS } from '@/lib/defaultData';
+import { DEFAULT_ITEMS, DEFAULT_TIPS } from '@/lib/defaultData';
 import {
   subscribeItems, saveItems, fetchItems,
   subscribeTips, saveTips, fetchTips,
@@ -15,7 +15,8 @@ import {
   subscribeWishlist, saveWishlist, fetchWishlist,
 } from '@/lib/firestore';
 
-const DEFAULT_IDS = new Set(DEFAULT_ITEMS.map(i => i.id));
+const DEFAULT_ITEM_IDS = new Set(DEFAULT_ITEMS.map(i => i.id));
+const DEFAULT_TIP_IDS = new Set(DEFAULT_TIPS.map(t => t.id));
 
 export function useCampingStore() {
   const [items, setItemsState] = useState<PackItem[]>([]);
@@ -34,21 +35,23 @@ export function useCampingStore() {
   const [syncing, setSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<Date | null>(null);
 
-  // Tracks which default item IDs the user has deliberately deleted
-  const deletedDefaultIdsRef = useRef<string[]>([]);
+  // Tracks which default IDs the user has deliberately deleted (per collection)
+  const deletedDefaultItemIdsRef = useRef<string[]>([]);
+  const deletedDefaultTipIdsRef = useRef<string[]>([]);
 
   const unsubsRef = useRef<Array<() => void>>([]);
 
   const refresh = useCallback(async () => {
     setSyncing(true);
     try {
-      const [itemsDoc, t, s, g, l, w] = await Promise.all([
+      const [itemsDoc, tipsDoc, s, g, l, w] = await Promise.all([
         fetchItems(), fetchTips(), fetchState(),
         fetchGroceries(), fetchLocations(), fetchWishlist(),
       ]);
       setItemsState(itemsDoc.items);
-      deletedDefaultIdsRef.current = itemsDoc.deletedDefaultIds;
-      setTipsState(t);
+      deletedDefaultItemIdsRef.current = itemsDoc.deletedDefaultIds;
+      setTipsState(tipsDoc.tips);
+      deletedDefaultTipIdsRef.current = tipsDoc.deletedDefaultIds;
       setCheckedState(s.checked);
       setTripConfigState(s.tripConfig);
       setGroceriesState(g);
@@ -66,10 +69,14 @@ export function useCampingStore() {
     unsubsRef.current = [
       subscribeItems((items, deletedIds) => {
         setItemsState(items);
-        if (deletedIds) deletedDefaultIdsRef.current = deletedIds;
+        if (deletedIds) deletedDefaultItemIdsRef.current = deletedIds;
         setLastSync(new Date());
       }),
-      subscribeTips(tips => { setTipsState(tips); setLastSync(new Date()); }),
+      subscribeTips((tips, deletedIds) => {
+        setTipsState(tips);
+        if (deletedIds) deletedDefaultTipIdsRef.current = deletedIds;
+        setLastSync(new Date());
+      }),
       subscribeState((checked, tripConfig) => {
         setCheckedState(checked);
         setTripConfigState(tripConfig);
@@ -103,9 +110,9 @@ export function useCampingStore() {
   // setItems: computes newly deleted default IDs and persists them
   const setItems = useCallback(async (newItems: PackItem[]) => {
     const newIds = new Set(newItems.map(i => i.id));
-    const nowDeleted = [...DEFAULT_IDS].filter(id => !newIds.has(id));
-    const allDeleted = [...new Set([...deletedDefaultIdsRef.current, ...nowDeleted])];
-    deletedDefaultIdsRef.current = allDeleted;
+    const nowDeleted = [...DEFAULT_ITEM_IDS].filter(id => !newIds.has(id));
+    const allDeleted = [...new Set([...deletedDefaultItemIdsRef.current, ...nowDeleted])];
+    deletedDefaultItemIdsRef.current = allDeleted;
 
     setItemsState(newItems);
     setSyncing(true);
@@ -117,7 +124,22 @@ export function useCampingStore() {
     }
   }, []);
 
-  const setTips = useCallback(wrapSet<Tip[]>(setTipsState, saveTips), []);
+  // setTips: same pattern — track which default tips the user removed
+  const setTips = useCallback(async (newTips: Tip[]) => {
+    const newIds = new Set(newTips.map(t => t.id));
+    const nowDeleted = [...DEFAULT_TIP_IDS].filter(id => !newIds.has(id));
+    const allDeleted = [...new Set([...deletedDefaultTipIdsRef.current, ...nowDeleted])];
+    deletedDefaultTipIdsRef.current = allDeleted;
+
+    setTipsState(newTips);
+    setSyncing(true);
+    try {
+      await saveTips(newTips, allDeleted);
+      setLastSync(new Date());
+    } finally {
+      setSyncing(false);
+    }
+  }, []);
   const setTripConfig = useCallback(wrapSet<TripConfig>(setTripConfigState, saveTripConfig), []);
   const setGroceries = useCallback(wrapSet<GroceryItem[]>(setGroceriesState, saveGroceries), []);
 
