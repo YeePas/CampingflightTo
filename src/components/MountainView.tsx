@@ -20,8 +20,10 @@ interface Hut {
   id: string;
   name: string;
   altitude: number;
-  url: string;
-  manned: boolean; // refuge gardé / gîte d'étape
+  refugesUrl: string;   // link to refuges.info page
+  websiteUrl: string;   // official hut website if available
+  closed: boolean;      // etat === 'Fermé'
+  capacity: number;     // places, 0 = unknown
 }
 
 interface SunInfo {
@@ -125,31 +127,35 @@ export default function MountainView() {
   };
 
   const fetchHuts = async (lat: number, lng: number) => {
-    const d = 0.2; // ~22 km bounding box — focused on the searched area
+    const d = 0.2; // ~22 km bounding box
     const bbox = `${lng - d},${lat - d},${lng + d},${lat + d}`;
     try {
       const res  = await fetch(
-        `https://www.refuges.info/api/bbox?bbox=${bbox}&type_points=cabane,refuge,gite&format=geojson`
+        `https://www.refuges.info/api/bbox?bbox=${bbox}&type_points=refuge,gite&format=geojson&detail=complet`
       );
       const data = await res.json();
       if (!data.features?.length) return;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const MANNED = ['refuge gardé', "gîte d'étape"];
       const result: Hut[] = (data.features as any[])
-        .map(f => ({
-          id:       String(f.properties?.id ?? Math.random()),
-          name:     f.properties?.nom ?? 'Onbekend',
-          altitude: f.properties?.coord?.alt ?? (f.geometry?.coordinates?.[2] ?? 0),
-          url:      f.properties?.lien ?? '',   // API uses 'lien', not 'url'
-          manned:   MANNED.includes(f.properties?.type?.valeur ?? ''),
-        }))
-        .filter((h: Hut) => h.name !== 'Onbekend')
-        // Manned refuges first, then unmanned — within each group sort by altitude desc
-        .sort((a: Hut, b: Hut) => {
-          if (a.manned !== b.manned) return a.manned ? -1 : 1;
-          return b.altitude - a.altitude;
+        .map(f => {
+          const p = f.properties ?? {};
+          const proprio: string = p.proprio?.valeur ?? '';
+          // Extract first clean URL from proprio text
+          const urlMatch = proprio.match(/https?:\/\/[^\s\r\n\]]+/);
+          const websiteUrl = urlMatch ? urlMatch[0].replace(/[.,;]+$/, '') : '';
+          return {
+            id:         String(p.id ?? Math.random()),
+            name:       p.nom ?? 'Onbekend',
+            altitude:   p.coord?.alt ?? (f.geometry?.coordinates?.[2] ?? 0),
+            refugesUrl: p.lien ?? '',
+            websiteUrl,
+            closed:     p.etat?.valeur === 'Fermé',
+            capacity:   p.places?.valeur ?? 0,
+          };
         })
-        .slice(0, 12);
+        .filter((h: Hut) => h.name !== 'Onbekend')
+        .sort((a: Hut, b: Hut) => b.altitude - a.altitude)
+        .slice(0, 15);
       setHuts(result);
     } catch {
       // huts are optional — silently swallow
@@ -278,31 +284,60 @@ export default function MountainView() {
       {huts.length > 0 && (
         <div className="mb-3">
           <p className="text-[11px] font-semibold text-stone-400 uppercase tracking-wide mb-2">
-            Berghutten in de buurt
+            Refuges &amp; gîtes in de buurt
           </p>
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {huts.map(h => (
-              <a
+              <div
                 key={h.id}
-                href={h.url || `https://www.refuges.info`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 bg-white border border-stone-100 rounded-xl px-3 py-2.5 hover:border-stone-300 transition-colors"
+                className={`bg-white border rounded-xl px-3 py-2.5 ${h.closed ? 'border-red-100 opacity-60' : 'border-stone-100'}`}
               >
-                <span className="text-base">{h.manned ? '🏠' : '⛺'}</span>
-                <div className="flex-1 min-w-0">
-                  <span className="text-sm text-stone-700 font-medium leading-tight block truncate">{h.name}</span>
-                  {h.manned && (
-                    <span className="text-[10px] text-green-600 font-medium">bewaakt</span>
-                  )}
+                <div className="flex items-start gap-2">
+                  <span className="text-base mt-0.5">🏠</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-sm text-stone-700 font-medium leading-tight">{h.name}</span>
+                      {h.closed ? (
+                        <span className="text-[10px] bg-red-50 text-red-500 border border-red-100 px-1.5 py-0.5 rounded-full font-medium">gesloten</span>
+                      ) : (
+                        <span className="text-[10px] bg-green-50 text-green-600 border border-green-100 px-1.5 py-0.5 rounded-full font-medium">open</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      {h.altitude > 0 && (
+                        <span className="text-xs text-stone-400">📍 {h.altitude.toLocaleString('nl-NL')} m</span>
+                      )}
+                      {h.capacity > 0 && (
+                        <span className="text-xs text-stone-400">🛏 {h.capacity} pl.</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1 items-end shrink-0">
+                    {h.websiteUrl && (
+                      <a
+                        href={h.websiteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] bg-green-600 text-white px-2 py-1 rounded-lg font-medium hover:bg-green-700"
+                        onClick={e => e.stopPropagation()}
+                      >
+                        Website
+                      </a>
+                    )}
+                    {h.refugesUrl && (
+                      <a
+                        href={h.refugesUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] text-stone-400 hover:text-stone-600"
+                        onClick={e => e.stopPropagation()}
+                      >
+                        refuges.info
+                      </a>
+                    )}
+                  </div>
                 </div>
-                {h.altitude > 0 && (
-                  <span className="text-xs text-stone-400 shrink-0">
-                    {h.altitude.toLocaleString('nl-NL')} m
-                  </span>
-                )}
-                <span className="text-stone-300 text-xs">›</span>
-              </a>
+              </div>
             ))}
           </div>
           <p className="text-[10px] text-stone-300 mt-1.5 text-right">Bron: refuges.info</p>
