@@ -21,6 +21,7 @@ interface Hut {
   name: string;
   altitude: number;
   url: string;
+  manned: boolean; // refuge gardé / gîte d'étape
 }
 
 interface SunInfo {
@@ -124,7 +125,7 @@ export default function MountainView() {
   };
 
   const fetchHuts = async (lat: number, lng: number) => {
-    const d = 0.45; // ~50 km bounding box
+    const d = 0.2; // ~22 km bounding box — focused on the searched area
     const bbox = `${lng - d},${lat - d},${lng + d},${lat + d}`;
     try {
       const res  = await fetch(
@@ -133,16 +134,22 @@ export default function MountainView() {
       const data = await res.json();
       if (!data.features?.length) return;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const MANNED = ['refuge gardé', "gîte d'étape"];
       const result: Hut[] = (data.features as any[])
         .map(f => ({
           id:       String(f.properties?.id ?? Math.random()),
           name:     f.properties?.nom ?? 'Onbekend',
           altitude: f.properties?.coord?.alt ?? (f.geometry?.coordinates?.[2] ?? 0),
-          url:      f.properties?.url ?? '',
+          url:      f.properties?.lien ?? '',   // API uses 'lien', not 'url'
+          manned:   MANNED.includes(f.properties?.type?.valeur ?? ''),
         }))
         .filter((h: Hut) => h.name !== 'Onbekend')
-        .sort((a: Hut, b: Hut) => b.altitude - a.altitude)
-        .slice(0, 8);
+        // Manned refuges first, then unmanned — within each group sort by altitude desc
+        .sort((a: Hut, b: Hut) => {
+          if (a.manned !== b.manned) return a.manned ? -1 : 1;
+          return b.altitude - a.altitude;
+        })
+        .slice(0, 12);
       setHuts(result);
     } catch {
       // huts are optional — silently swallow
@@ -277,13 +284,18 @@ export default function MountainView() {
             {huts.map(h => (
               <a
                 key={h.id}
-                href={h.url || '#'}
+                href={h.url || `https://www.refuges.info`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-3 bg-white border border-stone-100 rounded-xl px-3 py-2.5 hover:border-stone-300 transition-colors"
               >
-                <span className="text-base">🏔️</span>
-                <span className="flex-1 text-sm text-stone-700 font-medium leading-tight">{h.name}</span>
+                <span className="text-base">{h.manned ? '🏠' : '⛺'}</span>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm text-stone-700 font-medium leading-tight block truncate">{h.name}</span>
+                  {h.manned && (
+                    <span className="text-[10px] text-green-600 font-medium">bewaakt</span>
+                  )}
+                </div>
                 {h.altitude > 0 && (
                   <span className="text-xs text-stone-400 shrink-0">
                     {h.altitude.toLocaleString('nl-NL')} m
