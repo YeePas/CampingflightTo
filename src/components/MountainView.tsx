@@ -238,6 +238,27 @@ export default function MountainView() {
         </div>
       )}
 
+      {/* Thunder warning banner */}
+      {weather.some(d => d.code >= 95) && (
+        <div className="bg-amber-50 border border-amber-300 rounded-2xl px-4 py-3 mb-3 flex gap-3 items-start">
+          <span className="text-2xl leading-none">⛈️</span>
+          <div>
+            <p className="text-sm font-semibold text-amber-800">Onweer verwacht</p>
+            <p className="text-xs text-amber-700 mt-0.5">
+              {weather
+                .filter(d => d.code >= 95)
+                .map(d => {
+                  const isToday = d.date === todayStr();
+                  return isToday ? 'vandaag' : NL_DAY[new Date(d.date + 'T12:00:00').getDay()];
+                })
+                .join(', ')
+                .replace(/,([^,]*)$/, ' en$1')}
+              {' '}— plan routes vóór 13:00. Van de top af bij donkere stapelwolken.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* 5-day mountain weather */}
       {weather.length > 0 && (
         <div className="mb-4">

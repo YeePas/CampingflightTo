@@ -61,23 +61,33 @@ export default function TipsView({ tips, onAdd, onDelete, onEdit }: Props) {
     setShowForm(true);
   };
 
+  const catIndex = categories.indexOf(activeCategory);
+
   return (
     <div>
-      {/* Category filter */}
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide">
-        {categories.map(cat => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-              activeCategory === cat
-                ? 'bg-green-600 text-white'
-                : 'bg-white border border-stone-200 text-stone-600 hover:bg-stone-50'
-            }`}
-          >
-            {cat !== 'Alle' && CATEGORY_EMOJI[cat]} {cat}
-          </button>
-        ))}
+      {/* Category filter — sliding segmented control */}
+      <div className="relative mb-4 overflow-x-auto scrollbar-hide">
+        <div className="flex bg-stone-200/60 rounded-xl p-1 w-max min-w-full">
+          {/* Sliding pill */}
+          <div
+            className="absolute top-1 bottom-1 bg-white rounded-lg shadow-sm transition-all duration-200 ease-out pointer-events-none"
+            style={{
+              left:  `calc(${catIndex} * (100% / ${categories.length}) + 0.25rem)`,
+              width: `calc(100% / ${categories.length} - 0.5rem)`,
+            }}
+          />
+          {categories.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`relative flex-1 whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-200 ${
+                activeCategory === cat ? 'text-stone-800' : 'text-stone-500'
+              }`}
+            >
+              {cat !== 'Alle' && CATEGORY_EMOJI[cat]} {cat}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Tips list */}

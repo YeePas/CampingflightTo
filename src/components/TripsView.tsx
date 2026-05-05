@@ -145,7 +145,7 @@ function LocationsList({ locations, setLocations, onUndo }: Props) {
       {!showForm ? (
         <button
           onClick={() => { setShowForm(true); setEditing(null); setForm(EMPTY_LOC); }}
-          className="w-full py-3 mb-4 rounded-2xl bg-green-600 text-white font-medium hover:bg-green-700"
+          className="w-full py-2 mb-4 rounded-2xl border border-dashed border-stone-300 text-stone-500 text-sm font-medium hover:border-green-400 hover:text-green-600 transition-colors"
         >
           + Camping toevoegen
         </button>
@@ -364,7 +364,7 @@ function WishlistList({ wishlist, setWishlist, locations, setLocations, onUndo }
       {!showForm ? (
         <button
           onClick={() => { setShowForm(true); setEditing(null); setForm(EMPTY_WISH); }}
-          className="w-full py-3 mb-4 rounded-2xl bg-green-600 text-white font-medium hover:bg-green-700"
+          className="w-full py-2 mb-4 rounded-2xl border border-dashed border-stone-300 text-stone-500 text-sm font-medium hover:border-green-400 hover:text-green-600 transition-colors"
         >
           + Plek toevoegen aan wishlist
         </button>

@@ -212,6 +212,24 @@ export const DEFAULT_TIPS: Tip[] = [
     content: 'Bergrivieren stijgen \'s middags door smeltwater — \'s ochtends oversteken!\n\n**Bepalen of veilig:**\n• Niet dieper dan halverwege dij\n• Niet sneller dan stevige wandelpas (5 km/u)\n• Liever bredere, ondiepere plek dan smal en diep\n• Vermijd direct boven stroomversnelling\n\n**Techniek:**\n• Schoenen aanhouden! (anders verwondingen op stenen)\n• Heupgordel rugzak losmaken (kan eraf bij val)\n• Wandelstok stroomopwaarts als steunpunt\n• In groep: arm in arm, sterkste persoon stroomopwaarts\n• Diagonaal stroomafwaarts oversteken — niet recht tegen de stroom in',
   },
   {
+    id: 't18',
+    title: 'Noodkit: altijd meenemen',
+    category: 'Bergen',
+    content: 'Ongeacht de lengte van de tocht — altijd in je rugzak:\n\n• EHBO-kit (pleisters, zwachtels, pijnstillers, antibiotische zalf)\n• Thermische reddingsfolie (overlevingsdeken) — past in een vuist\n• Fluitje (3x blazen = noodsignaal)\n• Aansteker / lucifers in waterproof doosje\n• Zaklamp of hoofdlamp + reservebatterijen\n• Mes (multi-tool)\n• Extra eten (noodrantsoen: energierepen, noten)\n• Minstens 0.5L extra water\n• Powerbank voor telefoon\n• Notitie met naam, route en verwachte terugkomsttijd',
+  },
+  {
+    id: 't19',
+    title: 'SOS-signalen geven',
+    category: 'Bergen',
+    content: 'Als je hulp nodig hebt en geen telefoonbereik:\n\n**Universeel noodsignaal: 6x per minuut**\n• 6 fluitsignalen, 6 lichtflitsen of 6 roepen — dan 1 minuut pauze — herhaal\n• Reactie redder: 3x = bericht ontvangen\n\n**Zichtbare signalen:**\n• Reddingsfolie horizontaal uitleggen op open plek (zichtbaar vanuit helikopter)\n• Groot SOS in de sneeuw of met stenen (minstens 3m hoog)\n• Spiegelsignaal: zon reflecteren met telefoonscherm of glanzend oppervlak richting vliegtuig/helikopter\n\n**Via telefoon (ook zonder bereik):**\n• 112 werkt soms via elk beschikbaar netwerk\n• Zoek hoogste punt voor bereik\n• Sla exact GPS-coördinaat op (open kaart-app, bewaar locatie)',
+  },
+  {
+    id: 't20',
+    title: 'Sneeuwblindheid & UV op hoogte',
+    category: 'Bergen',
+    content: 'UV-straling neemt ~10% toe per 1000m hoogte. Op 3000m is de UV-intensiteit 30% hoger dan op zee.\n\n**Sneeuwblindheid (fotokeratitis):**\n• Ogen gaan pijn doen, tranen, gevoel van zand — pas uren later\n• Preventie: altijd zonnebril met 100% UV-bescherming (CAT 3 of 4 op gletsjers)\n• Zijwaartse bescherming nodig (gletsjer- of skibril)\n• Noodoplossing zonder bril: smalle spleet van karton/tape voor de ogen\n\n**Zonnebrand:**\n• Factor 50 op elke blootgestelde plek, ook lippen, oren, nek, onderkant neus\n• Elke 2 uur opnieuw smeren\n• Let op: bewolkt ≠ veilig — UV gaat door dunne wolken',
+  },
+  {
     id: 't17',
     title: 'Onderkoeling herkennen',
     category: 'Veiligheid',

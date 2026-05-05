@@ -116,7 +116,7 @@ export default function BeheerView({ items, onAdd, onDelete, onEdit }: Props) {
         <div className="flex gap-2 mb-4">
           <button
             onClick={() => { setShowForm(true); setEditingItem(null); setForm(EMPTY_FORM); }}
-            className="flex-1 py-3 rounded-2xl bg-green-600 text-white font-medium hover:bg-green-700 transition-colors"
+            className="flex-1 py-2 rounded-2xl border border-dashed border-stone-300 text-stone-500 text-sm font-medium hover:border-green-400 hover:text-green-600 transition-colors"
           >
             + Nieuw item
           </button>
