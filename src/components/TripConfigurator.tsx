@@ -173,7 +173,7 @@ export default function TripConfigurator({ config, onChange, onReset, checkedCou
                 ×
               </button>
             </div>
-            {config.weatherPlace && <WeatherWidget place={config.weatherPlace} />}
+            {config.weatherPlace && <WeatherWidget place={config.weatherPlace} departureDate={config.departureDate} />}
           </div>
         )}
       </div>
