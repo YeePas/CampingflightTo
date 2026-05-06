@@ -86,8 +86,17 @@ export default function PackingList({ items, checked, onToggle, tripType, onDele
   return (
     <div className="space-y-3">
       <div className="flex justify-end mb-2">
-        <button onClick={toggleAll} className="text-xs text-stone-400 hover:text-stone-600">
-          {allCollapsed ? '↕ alles uitklappen' : '↕ alles inklappen'}
+        <button
+          onClick={toggleAll}
+          aria-label={allCollapsed ? 'Alles uitklappen' : 'Alles inklappen'}
+          className="w-7 h-7 rounded-full border border-stone-200 text-stone-400 hover:text-stone-600 hover:border-stone-300 flex items-center justify-center transition-colors"
+        >
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            {allCollapsed
+              ? <><line x1="5" y1="12" x2="19" y2="12" /><line x1="12" y1="5" x2="12" y2="19" /></>
+              : <line x1="5" y1="12" x2="19" y2="12" />
+            }
+          </svg>
         </button>
       </div>
       {Object.entries(byCategory).map(([category, catItems]) => {
