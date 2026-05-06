@@ -27,10 +27,10 @@ const todayStr = () => {
 };
 
 // Open-Meteo's free forecast endpoint supports up to 16 days ahead.
-// We need 3 days starting from departure, so departure must be within 13 days.
+// We need SHOW_DAYS starting from departure, so departure must be within MAX_OFFSET days.
 const MAX_FORECAST_DAYS = 16;
-const SHOW_DAYS = 3;
-const MAX_OFFSET = MAX_FORECAST_DAYS - SHOW_DAYS; // 13
+const SHOW_DAYS = 7;
+const MAX_OFFSET = MAX_FORECAST_DAYS - SHOW_DAYS; // 9
 
 function daysBetween(from: string, to: string): number {
   // Both yyyy-MM-dd; compare via Date in local time
@@ -126,11 +126,14 @@ export default function WeatherWidget({ place, departureDate }: Props) {
       {startsFromDeparture && (
         <p className="text-[10px] text-stone-400 mb-1">vanaf vertrekdatum</p>
       )}
-      <div className="flex gap-1.5">
+      <div className="flex gap-1.5 overflow-x-auto -mx-1 px-1 pb-1 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {days.map(d => {
           const dayName = d.date === today ? 'vandaag' : NL_DAY[new Date(d.date + 'T12:00:00').getDay()];
           return (
-            <div key={d.date} className="flex-1 bg-stone-50 rounded-xl py-2 px-1 text-center">
+            <div
+              key={d.date}
+              className="flex-shrink-0 w-14 bg-stone-50 rounded-xl py-2 px-1 text-center snap-start"
+            >
               <div className="text-[10px] text-stone-400 font-medium uppercase tracking-wide">{dayName}</div>
               <div className="text-lg my-0.5 leading-none">{wIcon(d.code)}</div>
               <div className="text-xs font-semibold text-stone-700">{d.tMax}°</div>
