@@ -4,31 +4,34 @@ rules_version = '2';
 // CampingflightTo Firestore rules
 // =============================================================================
 //
-// Security model: invite-code based (no Firebase Auth).
-// Anyone can read & write any group's data — protection is the invite code
-// being kept private. For a tighter model later, add Firebase Anonymous Auth
-// and require request.auth != null + group.members[uid] checks.
+// Security model:
+//   - Group CREATION is admin-only (server-side API + Firebase Admin SDK).
+//     Client-side `create` on /groups/* is blocked by these rules.
+//   - Group READ + UPDATE (e.g. add a member) is open: anyone who knows the
+//     group's invite code can join.
+//   - App DATA inside /groups/{id}/data/* is open to anyone who knows the
+//     group id (i.e. who has joined the group).
 //
 // To deploy:
-//   1. Open Firebase Console → Firestore Database → Rules tab
-//   2. Paste the contents below
-//   3. Click "Publish"
-//
-// Or via CLI:
-//   firebase deploy --only firestore:rules
+//   Firebase Console → Firestore Database → Rules tab → paste this file → Publish
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // New group-scoped data (v2+)
+    // Group metadata
     match /groups/{groupId} {
-      allow read, write: if true;
+      allow read: if true;          // anyone can look up a group (needed to validate invite code)
+      allow update: if true;        // anyone can add themselves as a member after joining
+      allow create: if false;       // creation is admin-only (via /api/admin/create-group)
+      allow delete: if false;       // deletion is admin-only (not currently exposed)
+
+      // App data — paklijst, tips, locations, etc.
       match /data/{docId} {
         allow read, write: if true;
       }
     }
 
-    // Legacy paths — keep readable so the one-time migration can copy data
+    // Legacy paths — kept readable so the one-time migration can copy data
     // across. Safe to remove this block once migration has run on all devices.
     match /camping/{docId} {
       allow read, write: if true;

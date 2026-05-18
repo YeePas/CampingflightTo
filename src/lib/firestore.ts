@@ -27,19 +27,6 @@ const REF = (groupId: string) => ({
 // Groups (workspace management)
 // =============================================================================
 
-/** Generate a short, memorable invite code like "BERG-2745". */
-function genInviteCode(): string {
-  const words = ['BERG', 'TENT', 'KAMP', 'BOOM', 'VUUR', 'PAD', 'TOP', 'MEER', 'WIND', 'ROTS'];
-  const w = words[Math.floor(Math.random() * words.length)];
-  const n = Math.floor(1000 + Math.random() * 9000);
-  return `${w}-${n}`;
-}
-
-/** Random short group id slug, e.g. "g-xa9q12". */
-function genGroupId(): string {
-  return 'g-' + Math.random().toString(36).slice(2, 8);
-}
-
 /** Look up a group by its invite code (case-insensitive). Returns null if not found. */
 export async function findGroupByCode(code: string): Promise<Group | null> {
   const normalized = code.trim().toUpperCase();
@@ -49,33 +36,9 @@ export async function findGroupByCode(code: string): Promise<Group | null> {
   return snap.docs[0].data() as Group;
 }
 
-/** Create a new group. Returns the created Group (incl. generated id + code). */
-export async function createGroup(name: string, firstMemberName: string): Promise<Group> {
-  let id = genGroupId();
-  // Tiny collision guard — extremely unlikely but safe
-  for (let i = 0; i < 5; i++) {
-    const existing = await getDoc(doc(db, 'groups', id));
-    if (!existing.exists()) break;
-    id = genGroupId();
-  }
-
-  let inviteCode = genInviteCode();
-  for (let i = 0; i < 5; i++) {
-    const dup = await findGroupByCode(inviteCode);
-    if (!dup) break;
-    inviteCode = genInviteCode();
-  }
-
-  const group: Group = {
-    id,
-    name: name.trim() || 'Mijn groep',
-    inviteCode,
-    members: [firstMemberName.trim()],
-    createdAt: Date.now(),
-  };
-  await setDoc(doc(db, 'groups', id), group);
-  return group;
-}
+// NOTE: createGroup is intentionally server-only. See /api/admin/create-group —
+// only the admin (with the right PIN) can create groups. Firestore rules also
+// deny client-side `create` on the `groups/*` collection.
 
 /** Add a member name to an existing group (idempotent — won't add duplicates). */
 export async function addMemberToGroup(groupId: string, memberName: string): Promise<void> {

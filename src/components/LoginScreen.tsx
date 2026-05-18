@@ -5,7 +5,7 @@ import LogoMark from './LogoMark';
 
 interface Props {
   onJoin: (inviteCode: string, memberName: string) => Promise<boolean>;
-  onCreate: (groupName: string, memberName: string) => Promise<{ inviteCode: string }>;
+  onCreate: (groupName: string, memberName: string, adminPin: string) => Promise<{ inviteCode: string }>;
 }
 
 type Mode = 'pick' | 'join' | 'create' | 'created';
@@ -15,6 +15,7 @@ export default function LoginScreen({ onJoin, onCreate }: Props) {
   const [inviteCode, setInviteCode] = useState('');
   const [groupName, setGroupName] = useState('');
   const [memberName, setMemberName] = useState('');
+  const [adminPin, setAdminPin] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [createdCode, setCreatedCode] = useState('');
@@ -44,13 +45,13 @@ export default function LoginScreen({ onJoin, onCreate }: Props) {
 
   const handleCreate = async () => {
     setError(null);
-    if (!groupName.trim() || !memberName.trim()) {
-      setError('Vul beide velden in');
+    if (!groupName.trim() || !memberName.trim() || !adminPin.trim()) {
+      setError('Vul alle velden in');
       return;
     }
     setBusy(true);
     try {
-      const g = await onCreate(groupName, memberName);
+      const g = await onCreate(groupName, memberName, adminPin);
       setCreatedCode(g.inviteCode);
       setMode('created');
     } catch (err) {
@@ -89,17 +90,16 @@ export default function LoginScreen({ onJoin, onCreate }: Props) {
           <div className="space-y-3">
             <button
               onClick={() => { setMode('join'); setError(null); }}
-              className="w-full bg-white/15 hover:bg-white/25 backdrop-blur text-white rounded-2xl py-4 px-5 text-left transition-all border border-white/20"
+              className="w-full bg-green-600 hover:bg-green-700 text-white rounded-2xl py-4 px-5 text-left transition-all shadow-lg"
             >
               <div className="font-semibold">Inloggen met code</div>
-              <div className="text-xs text-white/70 mt-0.5">Iemand heeft je een code gegeven</div>
+              <div className="text-xs text-white/90 mt-0.5">Vul de invite-code in die je hebt gekregen</div>
             </button>
             <button
               onClick={() => { setMode('create'); setError(null); }}
-              className="w-full bg-green-600 hover:bg-green-700 text-white rounded-2xl py-4 px-5 text-left transition-all shadow-lg"
+              className="w-full bg-white/10 hover:bg-white/15 text-white/80 rounded-xl py-2.5 px-4 text-center transition-all border border-white/15 text-xs"
             >
-              <div className="font-semibold">Nieuwe groep starten</div>
-              <div className="text-xs text-white/90 mt-0.5">Voor jou + partner / vrienden / gezin</div>
+              Admin: nieuwe groep aanmaken
             </button>
           </div>
         )}
@@ -156,6 +156,18 @@ export default function LoginScreen({ onJoin, onCreate }: Props) {
               ← Terug
             </button>
             <div className="bg-white/10 backdrop-blur rounded-2xl p-6 border border-white/20 space-y-4">
+              <p className="text-xs text-white/70 -mt-1">Alleen de beheerder kan groepen aanmaken.</p>
+              <div>
+                <label className="block text-white/80 text-xs mb-1.5">Admin-PIN</label>
+                <input
+                  type="password"
+                  placeholder="••••••"
+                  value={adminPin}
+                  onChange={e => { setAdminPin(e.target.value); setError(null); }}
+                  autoFocus
+                  className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/40"
+                />
+              </div>
               <div>
                 <label className="block text-white/80 text-xs mb-1.5">Groepsnaam</label>
                 <input
@@ -163,7 +175,6 @@ export default function LoginScreen({ onJoin, onCreate }: Props) {
                   placeholder="Bijv. Joep & Sanne"
                   value={groupName}
                   onChange={e => { setGroupName(e.target.value); setError(null); }}
-                  autoFocus
                   className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-white/40"
                 />
               </div>

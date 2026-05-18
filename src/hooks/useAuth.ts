@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Session, Group } from '@/lib/types';
 import {
-  findGroupByCode, createGroup as createGroupRemote,
+  findGroupByCode,
   addMemberToGroup, fetchGroup,
   migrateLegacyDataIfNeeded,
 } from '@/lib/firestore';
@@ -77,10 +77,24 @@ export function useAuth() {
     return true;
   }, []);
 
-  /** Create a fresh group and join it as the first member. */
-  const createGroup = useCallback(async (groupName: string, memberName: string): Promise<Group> => {
+  /** Create a fresh group via the admin API. Requires the admin PIN. */
+  const createGroup = useCallback(async (
+    groupName: string,
+    memberName: string,
+    adminPin: string,
+  ): Promise<Group> => {
     const name = memberName.trim() || 'Anoniem';
-    const g = await createGroupRemote(groupName, name);
+    const res = await fetch('/api/admin/create-group', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ adminPin, groupName, memberName: name }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || `Aanvraag mislukt (${res.status})`);
+    }
+    const data = await res.json() as { group: Group };
+    const g = data.group;
     const next: Session = { groupId: g.id, memberName: name };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     setSession(next);
