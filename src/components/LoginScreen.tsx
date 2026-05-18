@@ -29,8 +29,14 @@ export default function LoginScreen({ onJoin, onCreate }: Props) {
     try {
       const ok = await onJoin(inviteCode, memberName);
       if (!ok) setError('Code niet gevonden. Check de code en probeer opnieuw.');
-    } catch {
-      setError('Er ging iets mis, probeer opnieuw.');
+    } catch (err) {
+      console.error('joinGroup failed:', err);
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('permission') || msg.includes('insufficient')) {
+        setError('Database-toegang geweigerd. Firestore Security Rules moeten geüpdatet worden.');
+      } else {
+        setError(`Er ging iets mis: ${msg}`);
+      }
     } finally {
       setBusy(false);
     }
@@ -47,8 +53,14 @@ export default function LoginScreen({ onJoin, onCreate }: Props) {
       const g = await onCreate(groupName, memberName);
       setCreatedCode(g.inviteCode);
       setMode('created');
-    } catch {
-      setError('Er ging iets mis, probeer opnieuw.');
+    } catch (err) {
+      console.error('createGroup failed:', err);
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('permission') || msg.includes('insufficient')) {
+        setError('Database-toegang geweigerd. Firestore Security Rules moeten geüpdatet worden.');
+      } else {
+        setError(`Er ging iets mis: ${msg}`);
+      }
     } finally {
       setBusy(false);
     }

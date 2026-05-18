@@ -1,0 +1,37 @@
+rules_version = '2';
+
+// =============================================================================
+// CampingflightTo Firestore rules
+// =============================================================================
+//
+// Security model: invite-code based (no Firebase Auth).
+// Anyone can read & write any group's data — protection is the invite code
+// being kept private. For a tighter model later, add Firebase Anonymous Auth
+// and require request.auth != null + group.members[uid] checks.
+//
+// To deploy:
+//   1. Open Firebase Console → Firestore Database → Rules tab
+//   2. Paste the contents below
+//   3. Click "Publish"
+//
+// Or via CLI:
+//   firebase deploy --only firestore:rules
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // New group-scoped data (v2+)
+    match /groups/{groupId} {
+      allow read, write: if true;
+      match /data/{docId} {
+        allow read, write: if true;
+      }
+    }
+
+    // Legacy paths — keep readable so the one-time migration can copy data
+    // across. Safe to remove this block once migration has run on all devices.
+    match /camping/{docId} {
+      allow read, write: if true;
+    }
+  }
+}
