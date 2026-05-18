@@ -63,17 +63,13 @@ function useUndoToast() {
   return { undo, arm, dismiss, trigger };
 }
 
-const USER_DISPLAY: Record<string, { name: string; emoji: string }> = {
-  joep:  { name: 'Joep',  emoji: '🧔' },
-  sanne: { name: 'Sanne', emoji: '👩' },
-};
-
 export default function Home() {
   const [activeTab, setActiveTab] = useState<Tab>('paklijst');
   const [pakSub, setPakSub] = useState<PakSub>('spullen');
-  const s = useCampingStore();
-  const { undo, arm, dismiss, trigger } = useUndoToast();
   const auth = useAuth();
+  const s = useCampingStore(auth.session?.groupId ?? null);
+  const { undo, arm, dismiss, trigger } = useUndoToast();
+  const [showAccountSheet, setShowAccountSheet] = useState(false);
 
   // Wait for localStorage to be read
   if (!auth.mounted) {
@@ -84,8 +80,8 @@ export default function Home() {
     );
   }
 
-  if (!auth.user) {
-    return <LoginScreen onLogin={auth.login} />;
+  if (!auth.session || !auth.group) {
+    return <LoginScreen onJoin={auth.joinGroup} onCreate={auth.createGroup} />;
   }
 
   if (!s.mounted) {
@@ -95,8 +91,6 @@ export default function Home() {
       </div>
     );
   }
-
-  const currentUser = USER_DISPLAY[auth.user];
 
   const checkedCount = s.filteredItems.filter(i => s.checked[i.id]).length;
 
@@ -180,12 +174,12 @@ export default function Home() {
                 <span className="hidden sm:inline">{s.syncing ? 'syncen…' : timeAgo(s.lastSync) || 'sync'}</span>
               </button>
               <button
-                onClick={auth.logout}
+                onClick={() => setShowAccountSheet(true)}
                 className="flex items-center gap-1.5 text-xs bg-white/15 hover:bg-white/25 backdrop-blur px-3 py-1.5 rounded-full transition-all"
-                title="Uitloggen"
+                title="Account & groep"
               >
-                <span>{currentUser.emoji}</span>
-                <span>{currentUser.name}</span>
+                <span>👤</span>
+                <span>{auth.session.memberName}</span>
               </button>
             </div>
           </div>
@@ -318,6 +312,74 @@ export default function Home() {
           onUndo={trigger}
           onDismiss={dismiss}
         />
+      )}
+
+      {/* Account & group sheet */}
+      {showAccountSheet && auth.group && auth.session && (
+        <div
+          className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-center p-4"
+          onClick={() => setShowAccountSheet(false)}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-xl"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-stone-800">Mijn groep</h2>
+              <button
+                onClick={() => setShowAccountSheet(false)}
+                className="text-stone-400 hover:text-stone-600 text-xl leading-none"
+                aria-label="Sluiten"
+              >×</button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <div className="text-xs text-stone-400 uppercase tracking-wide mb-1">Groep</div>
+                <div className="text-stone-700 font-medium">{auth.group.name}</div>
+              </div>
+
+              <div>
+                <div className="text-xs text-stone-400 uppercase tracking-wide mb-1">Invite-code</div>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 bg-stone-100 rounded-lg px-3 py-2 font-mono text-stone-700 tracking-[0.15em]">
+                    {auth.group.inviteCode}
+                  </code>
+                  <button
+                    onClick={() => navigator.clipboard?.writeText(auth.group!.inviteCode)}
+                    className="text-xs text-stone-500 hover:text-stone-700 px-2 py-2 border border-stone-200 rounded-lg"
+                  >Kopieer</button>
+                </div>
+                <p className="text-xs text-stone-400 mt-1.5">Deel deze code met iemand om hen toegang te geven tot dezelfde paklijst, campings, etc.</p>
+              </div>
+
+              <div>
+                <div className="text-xs text-stone-400 uppercase tracking-wide mb-1">Leden</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {auth.group.members.map(m => (
+                    <span
+                      key={m}
+                      className={`text-xs px-2.5 py-1 rounded-full ${
+                        m === auth.session!.memberName
+                          ? 'bg-green-100 text-green-700 border border-green-200'
+                          : 'bg-stone-100 text-stone-600'
+                      }`}
+                    >{m}{m === auth.session!.memberName ? ' (jij)' : ''}</span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-stone-100">
+                <button
+                  onClick={() => { auth.logout(); setShowAccountSheet(false); }}
+                  className="w-full text-sm text-red-500 hover:text-red-700 font-medium py-2"
+                >
+                  Uitloggen
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

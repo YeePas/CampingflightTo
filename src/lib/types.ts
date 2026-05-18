@@ -95,3 +95,23 @@ export const TIP_CATEGORIES = [
   'Koken',
   'Bergen',
 ] as const;
+
+// =============================================================================
+// Multi-tenancy
+// =============================================================================
+
+/** A "group" is a shared workspace — couples, families, individuals. All app
+ *  data (items, tips, locations, etc.) is scoped under a single groupId. */
+export interface Group {
+  id: string;            // short slug, e.g. "joep-sanne" or random "g-xyz123"
+  name: string;          // display name, e.g. "Joep & Sanne"
+  inviteCode: string;    // e.g. "BERG-2745" — used to join
+  members: string[];     // member display names within this group
+  createdAt: number;     // ms epoch
+}
+
+/** What the app remembers per device (in localStorage). */
+export interface Session {
+  groupId: string;
+  memberName: string;    // human-friendly name, free-form
+}

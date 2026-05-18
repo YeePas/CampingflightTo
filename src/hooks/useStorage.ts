@@ -18,7 +18,7 @@ import {
 const DEFAULT_ITEM_IDS = new Set(DEFAULT_ITEMS.map(i => i.id));
 const DEFAULT_TIP_IDS = new Set(DEFAULT_TIPS.map(t => t.id));
 
-export function useCampingStore() {
+export function useCampingStore(groupId: string | null) {
   const [items, setItemsState] = useState<PackItem[]>([]);
   const [tips, setTipsState] = useState<Tip[]>([]);
   const [checked, setCheckedState] = useState<CheckedItems>({});
@@ -42,11 +42,12 @@ export function useCampingStore() {
   const unsubsRef = useRef<Array<() => void>>([]);
 
   const refresh = useCallback(async () => {
+    if (!groupId) return;
     setSyncing(true);
     try {
       const [itemsDoc, tipsDoc, s, g, l, w] = await Promise.all([
-        fetchItems(), fetchTips(), fetchState(),
-        fetchGroceries(), fetchLocations(), fetchWishlist(),
+        fetchItems(groupId), fetchTips(groupId), fetchState(groupId),
+        fetchGroceries(groupId), fetchLocations(groupId), fetchWishlist(groupId),
       ]);
       setItemsState(itemsDoc.items);
       deletedDefaultItemIdsRef.current = itemsDoc.deletedDefaultIds;
@@ -61,30 +62,43 @@ export function useCampingStore() {
     } finally {
       setSyncing(false);
     }
-  }, []);
+  }, [groupId]);
 
   useEffect(() => {
+    // Switching groups: reset everything & re-subscribe
+    unsubsRef.current.forEach(u => u());
+    unsubsRef.current = [];
+    setMounted(false);
+
+    if (!groupId) {
+      setItemsState([]); setTipsState([]); setCheckedState({});
+      setGroceriesState([]); setLocationsState([]); setWishlistState([]);
+      locationsRef.current = []; wishlistRef.current = [];
+      setMounted(true);
+      return;
+    }
+
     refresh().catch(() => {}).finally(() => setMounted(true));
 
     unsubsRef.current = [
-      subscribeItems((items, deletedIds) => {
+      subscribeItems(groupId, (items, deletedIds) => {
         setItemsState(items);
         if (deletedIds) deletedDefaultItemIdsRef.current = deletedIds;
         setLastSync(new Date());
       }),
-      subscribeTips((tips, deletedIds) => {
+      subscribeTips(groupId, (tips, deletedIds) => {
         setTipsState(tips);
         if (deletedIds) deletedDefaultTipIdsRef.current = deletedIds;
         setLastSync(new Date());
       }),
-      subscribeState((checked, tripConfig) => {
+      subscribeState(groupId, (checked, tripConfig) => {
         setCheckedState(checked);
         setTripConfigState(tripConfig);
         setLastSync(new Date());
       }),
-      subscribeGroceries(g => { setGroceriesState(g); setLastSync(new Date()); }),
-      subscribeLocations(l => { locationsRef.current = l; setLocationsState(l); setLastSync(new Date()); }),
-      subscribeWishlist(w => { wishlistRef.current = w; setWishlistState(w); setLastSync(new Date()); }),
+      subscribeGroceries(groupId, g => { setGroceriesState(g); setLastSync(new Date()); }),
+      subscribeLocations(groupId, l => { locationsRef.current = l; setLocationsState(l); setLastSync(new Date()); }),
+      subscribeWishlist(groupId, w => { wishlistRef.current = w; setWishlistState(w); setLastSync(new Date()); }),
     ];
 
     const onVisible = () => {
@@ -98,17 +112,13 @@ export function useCampingStore() {
       document.removeEventListener('visibilitychange', onVisible);
       window.removeEventListener('focus', onVisible);
     };
-  }, [refresh]);
+  }, [refresh, groupId]);
 
-  const wrapSet = <T,>(local: (v: T) => void, remote: (v: T) => Promise<unknown>) =>
-    async (v: T) => {
-      local(v);
-      setSyncing(true);
-      try { await remote(v); setLastSync(new Date()); } finally { setSyncing(false); }
-    };
+  const noGroup = !groupId;
 
   // setItems: computes newly deleted default IDs and persists them
   const setItems = useCallback(async (newItems: PackItem[]) => {
+    if (noGroup || !groupId) return;
     const newIds = new Set(newItems.map(i => i.id));
     const nowDeleted = [...DEFAULT_ITEM_IDS].filter(id => !newIds.has(id));
     const allDeleted = [...new Set([...deletedDefaultItemIdsRef.current, ...nowDeleted])];
@@ -117,15 +127,16 @@ export function useCampingStore() {
     setItemsState(newItems);
     setSyncing(true);
     try {
-      await saveItems(newItems, allDeleted);
+      await saveItems(groupId, newItems, allDeleted);
       setLastSync(new Date());
     } finally {
       setSyncing(false);
     }
-  }, []);
+  }, [groupId, noGroup]);
 
   // setTips: same pattern — track which default tips the user removed
   const setTips = useCallback(async (newTips: Tip[]) => {
+    if (noGroup || !groupId) return;
     const newIds = new Set(newTips.map(t => t.id));
     const nowDeleted = [...DEFAULT_TIP_IDS].filter(id => !newIds.has(id));
     const allDeleted = [...new Set([...deletedDefaultTipIdsRef.current, ...nowDeleted])];
@@ -134,48 +145,64 @@ export function useCampingStore() {
     setTipsState(newTips);
     setSyncing(true);
     try {
-      await saveTips(newTips, allDeleted);
+      await saveTips(groupId, newTips, allDeleted);
       setLastSync(new Date());
     } finally {
       setSyncing(false);
     }
-  }, []);
-  const setTripConfig = useCallback(wrapSet<TripConfig>(setTripConfigState, saveTripConfig), []);
-  const setGroceries = useCallback(wrapSet<GroceryItem[]>(setGroceriesState, saveGroceries), []);
+  }, [groupId, noGroup]);
+
+  const setTripConfig = useCallback(async (v: TripConfig) => {
+    if (!groupId) return;
+    setTripConfigState(v);
+    setSyncing(true);
+    try { await saveTripConfig(groupId, v); setLastSync(new Date()); } finally { setSyncing(false); }
+  }, [groupId]);
+
+  const setGroceries = useCallback(async (v: GroceryItem[]) => {
+    if (!groupId) return;
+    setGroceriesState(v);
+    setSyncing(true);
+    try { await saveGroceries(groupId, v); setLastSync(new Date()); } finally { setSyncing(false); }
+  }, [groupId]);
 
   // setLocations / setWishlist support both plain arrays and functional updaters so that
   // closures (e.g. undo callbacks, checklist toggles) never operate on stale snapshot data.
   type Updater<T> = T | ((prev: T) => T);
 
   const setLocations = useCallback(async (updater: Updater<CampingLocation[]>) => {
+    if (!groupId) return;
     const next = typeof updater === 'function' ? updater(locationsRef.current) : updater;
     locationsRef.current = next;
     setLocationsState(next);
     setSyncing(true);
-    try { await saveLocations(next); setLastSync(new Date()); } finally { setSyncing(false); }
-  }, []);
+    try { await saveLocations(groupId, next); setLastSync(new Date()); } finally { setSyncing(false); }
+  }, [groupId]);
 
   const setWishlist = useCallback(async (updater: Updater<WishlistItem[]>) => {
+    if (!groupId) return;
     const next = typeof updater === 'function' ? updater(wishlistRef.current) : updater;
     wishlistRef.current = next;
     setWishlistState(next);
     setSyncing(true);
-    try { await saveWishlist(next); setLastSync(new Date()); } finally { setSyncing(false); }
-  }, []);
+    try { await saveWishlist(groupId, next); setLastSync(new Date()); } finally { setSyncing(false); }
+  }, [groupId]);
 
   const toggleCheck = useCallback((id: string) => {
+    if (!groupId) return;
     setCheckedState(prev => {
       const next = { ...prev, [id]: !prev[id] };
-      saveChecked(next).then(() => setLastSync(new Date()));
+      saveChecked(groupId, next).then(() => setLastSync(new Date()));
       return next;
     });
-  }, []);
+  }, [groupId]);
 
   const resetChecked = useCallback(async () => {
+    if (!groupId) return;
     setCheckedState({});
     setSyncing(true);
-    try { await saveChecked({}); setLastSync(new Date()); } finally { setSyncing(false); }
-  }, []);
+    try { await saveChecked(groupId, {}); setLastSync(new Date()); } finally { setSyncing(false); }
+  }, [groupId]);
 
   const filteredItems = items.filter(item => {
     if (!item.tripTypes.includes(tripConfig.type)) return false;
